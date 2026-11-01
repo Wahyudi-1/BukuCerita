@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kisah Arka - Buku Cerita Interaktif</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#58cc02">
+  <style>
+    :root {
+      --primary: #58cc02;
+      --primary-border: #46a302;
+      --accent: #1cb0f6;
+      --accent-border: #1899d6;
+      --bg: #eef2f5;
+      --paper: #ffffff;
+      --text: #2c3437;
+      --text-sub: #77838f;
+      --border: #e2e8f0;
+      --card-shadow: rgba(0, 0, 0, 0.05);
+      --word-dash: #a0aec0;
+      --option-bg: #f8fafc;
+      --option-hover: #e0f2fe;
+    }
+
+    body.dark-mode {
+      --primary: #58cc02;
+      --primary-border: #3b8001;
+      --accent: #38bdf8;
+      --accent-border: #0284c7;
+      --bg: #0f172a;
+      --paper: #1e293b;
+      --text: #f1f5f9;
+      --text-sub: #94a3b8;
+      --border: #334155;
+      --card-shadow: rgba(0, 0, 0, 0.35);
+      --word-dash: #64748b;
+      --option-bg: #27354a;
+      --option-hover: #1e3a5f;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      transition: background-color 0.25s ease, border-color 0.25s ease, color 0.2s ease;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 12px;
+      user-select: none;
+    }
+
+    .storybook-app {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 2px 0;
+    }
+
+    .btn-tool {
+      background: var(--paper);
+      border: 2px solid var(--border);
+      box-shadow: 0 3px 0 var(--border);
+      border-radius: 14px;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .btn-tool:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 var(--border);
+    }
+
+    .progress-track {
+      flex: 1;
+      height: 14px;
+      background-color: var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 5%;
+      background-color: var(--primary);
+      border-radius: 20px;
+      transition: width 0.35s ease;
+    }
+
+    .page-indicator {
+      font-weight: 800;
+      color: var(--text-sub);
+      font-size: 0.9rem;
+      min-width: 50px;
+      text-align: right;
+    }
+
+    /* 3D Book Stage */
+    .book-stage {
+      perspective: 1400px;
+      width: 100%;
+      min-height: 490px;
+      display: flex;
+      position: relative;
+      touch-action: pan-y;
+    }
+
+    .page-sheet {
+      width: 100%;
+      background: var(--paper);
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      box-shadow: 0 8px 0 var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+      transform-origin: center center;
+      position: relative;
+    }
+
+    /* Flip Animations */
+    .flipping-out-next { animation: flipOutNext 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+    .flipping-in-next { animation: flipInNext 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+    .flipping-out-prev { animation: flipOutPrev 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+    .flipping-in-prev { animation: flipInPrev 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+    @keyframes flipOutNext {
+      0% { transform: rotateY(0deg) scale(1); opacity: 1; }
+      100% { transform: rotateY(-80deg) scale(0.94); opacity: 0.2; }
+    }
+    @keyframes flipInNext {
+      0% { transform: rotateY(80deg) scale(0.94); opacity: 0.2; }
+      100% { transform: rotateY(0deg) scale(1); opacity: 1; }
+    }
+    @keyframes flipOutPrev {
+      0% { transform: rotateY(0deg) scale(1); opacity: 1; }
+      100% { transform: rotateY(80deg) scale(0.94); opacity: 0.2; }
+    }
+    @keyframes flipInPrev {
+      0% { transform: rotateY(-80deg) scale(0.94); opacity: 0.2; }
+      100% { transform: rotateY(0deg) scale(1); opacity: 1; }
+    }
+
+    /* Spine Crease Effect */
+    .page-sheet::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 12px;
+      background: linear-gradient(to right, rgba(0,0,0,0.06), transparent);
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    /* Illustration */
+    .image-frame {
+      width: 100%;
+      height: 270px;
+      background-color: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .image-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+
+    /* Content Area */
+    .page-body {
+      padding: 18px 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      flex: 1;
+    }
+
+    .btn-speaker {
+      background: var(--accent);
+      border: none;
+      border-radius: 16px;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 0 var(--accent-border);
+      flex-shrink: 0;
+    }
+
+    .btn-speaker:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 var(--accent-border);
+    }
+
+    .btn-speaker svg {
+      width: 26px;
+      height: 26px;
+      fill: #ffffff;
+    }
+
+    .btn-speaker.playing {
+      background: #ff9600;
+      box-shadow: 0 4px 0 #cc7800;
+      animation: pulseBtn 0.9s infinite alternate;
+    }
+
+    @keyframes pulseBtn {
+      from { transform: scale(1); }
+      to { transform: scale(1.05); }
+    }
+
+    .text-flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 8px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1.6;
+    }
+
+    .clickable-word {
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 8px;
+      border-bottom: 2px dashed var(--word-dash);
+    }
+
+    .clickable-word:hover {
+      background-color: rgba(28, 176, 246, 0.15);
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .clickable-word:active, .clickable-word.speaking {
+      background-color: rgba(28, 176, 246, 0.3);
+      color: var(--accent);
+      border-bottom-style: solid;
+      transform: scale(0.94);
+    }
+
+    /* Bottom Action Controls */
+    .action-controls {
+      display: flex;
+      gap: 12px;
+      padding: 4px 0;
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 16px;
+      font-size: 1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      border-radius: 18px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-action-prev {
+      background-color: var(--paper);
+      color: var(--text-sub);
+      border: 2px solid var(--border);
+      box-shadow: 0 4px 0 var(--border);
+    }
+
+    .btn-action-next {
+      background-color: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 0 var(--primary-border);
+    }
+
+    .btn-action:active:not(:disabled) { transform: translateY(3px); }
+    .btn-action-prev:active:not(:disabled) { box-shadow: 0 1px 0 var(--border); }
+    .btn-action-next:active:not(:disabled) { box-shadow: 0 1px 0 var(--primary-border); }
+    .btn-action:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; transform: none; }
+
+    /* ================= KUIS PEMAHAMAN BACAAN ================= */
+    .quiz-view {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      background: var(--paper);
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 8px 0 var(--card-shadow);
+    }
+
+    .quiz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    .quiz-header h2 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .quiz-step {
+      font-weight: 800;
+      color: var(--text-sub);
+      font-size: 0.9rem;
+    }
+
+    .quiz-question {
+      font-size: 1.15rem;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .quiz-opt-btn {
+      background: var(--option-bg);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: 0 3px 0 var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .quiz-opt-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 var(--border);
+    }
+
+    .quiz-opt-btn.correct {
+      background: #dcfce7 !important;
+      border-color: #22c55e !important;
+      color: #15803d !important;
+      box-shadow: 0 3px 0 #16a34a !important;
+    }
+
+    .quiz-opt-btn.wrong {
+      background: #fee2e2 !important;
+      border-color: #ef4444 !important;
+      color: #b91c1c !important;
+      box-shadow: 0 3px 0 #dc2626 !important;
+    }
+
+    /* Hasil Skor Kuis */
+    .quiz-result {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 14px;
+      padding: 20px 10px;
+    }
+
+    .stars-box {
+      font-size: 3rem;
+      letter-spacing: 4px;
+    }
+
+    .result-score {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .result-msg {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-sub);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="storybook-app">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <button class="btn-tool" id="btnThemeToggle" title="Ganti Mode Malam">🌙</button>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="page-indicator" id="pageIndicator">1/20</div>
+    </div>
+
+    <!-- 3D Book Stage -->
+    <div class="book-stage" id="bookStage">
+      <div class="page-sheet" id="pageSheet">
+        <div class="image-frame">
+          <img id="storyImage" src="" alt="Ilustrasi Arka">
+        </div>
+        <div class="page-body">
+          <button class="btn-speaker" id="btnPageAudio" title="Dengarkan halaman ini">
+            <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+          </button>
+          <div class="text-flow" id="textFlow"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quiz View (Muncul di Akhir Cerita) -->
+    <div class="quiz-view" id="quizView">
+      <div id="quizQuestionBox">
+        <div class="quiz-header">
+          <h2>🎯 Kuis Pemahaman</h2>
+          <span class="quiz-step" id="quizStep">1/4</span>
+        </div>
+        <p class="quiz-question" id="quizQuestionText" style="margin: 14px 0;"></p>
+        <div class="quiz-options" id="quizOptions"></div>
+      </div>
+
+      <!-- Result Screen -->
+      <div class="quiz-result" id="quizResult">
+        <div class="stars-box" id="starsBox">⭐⭐⭐</div>
+        <div class="result-score" id="resultScore">100</div>
+        <p class="result-msg" id="resultMsg">Hebat sekali! Kamu menyimak seluruh kebiasaan baik Arka dengan sempurna!</p>
+        <button class="btn-action btn-action-next" id="btnRestartStory" style="width: 100%;">Baca Ulang Cerita</button>
+      </div>
+    </div>
+
+    <!-- Navigation Controls -->
+    <div class="action-controls" id="navControls">
+      <button class="btn-action btn-action-prev" id="btnPrev" disabled>Sebelumnya</button>
+      <button class="btn-action btn-action-next" id="btnNext">Balik Halaman</button>
+    </div>
+  </div>
+
+  <audio id="audioElement"></audio>
+
+  <script>
+    // -------------------------------------------------------------
+    // DATA CERITA (20 HALAMAN KISAH ARKA)
+    // -------------------------------------------------------------
+    const storyPages = [
+      {
+        page: 1,
+        text: "Kring! Matahari pagi menyapa ramah. Arka bangun dari kasur dan tersenyum bersyukur.",
+        image: "./images/01.webp",
+        audio: "./audio/01.mp3"
+      },
+      {
+        page: 2,
+        text: "Kasur mungil dirapikan dengan rapi. Arka berbisik memohon hari yang menyenangkan.",
+        image: "./images/02.webp",
+        audio: "./audio/02.mp3"
+      },
+      {
+        page: 3,
+        text: "Aroma sarapan tercium harum di meja makan. Sebelum makan, Arka menundukkan kepala dan berdoa.",
+        image: "./images/03.webp",
+        audio: "./audio/03.mp3"
+      },
+      {
+        page: 4,
+        text: "Sepatu hitam sudah terpasang rapi. Di depan pintu, Arka memohon perlindungan di perjalanan.",
+        image: "./images/04.webp",
+        audio: "./audio/04.mp3"
+      },
+      {
+        page: 5,
+        text: "Langkah kaki Arka terasa ringan. Hati yang selalu berdoa membuat harinya berseri-seri.",
+        image: "./images/05.webp",
+        audio: "./audio/05.mp3"
+      },
+      {
+        page: 6,
+        text: "Gerbang sekolah menyambut Arka. Ia tersenyum riang menyapa bapak guru.",
+        image: "./images/06.webp",
+        audio: "./audio/06.mp3"
+      },
+      {
+        page: 7,
+        text: "Teng-teng! Bel masuk kelas berbunyi. Arka berdoa bersama teman-teman sebelum pelajaran dimulai.",
+        image: "./images/07.webp",
+        audio: "./audio/07.mp3"
+      },
+      {
+        page: 8,
+        text: "Ada soal berhitung yang cukup sulit. Arka tidak cemas, ia berdoa memohon pikiran yang terang.",
+        image: "./images/08.webp",
+        audio: "./audio/08.mp3"
+      },
+      {
+        page: 9,
+        text: "Hore! Jawabannya berhasil ditemukan! Arka tersenyum bersyukur atas ilmu baru.",
+        image: "./images/09.webp",
+        audio: "./audio/09.mp3"
+      },
+      {
+        page: 10,
+        text: "Waktu istirahat tiba! Arka mencuci tangan dan berdoa sebelum menyantap bekal apel manis.",
+        image: "./images/10.webp",
+        audio: "./audio/10.mp3"
+      },
+      {
+        page: 11,
+        text: "Teman di sebelah lupa membawa bekal. Arka membagi kuenya dengan tulus dan penuh senyum.",
+        image: "./images/11.webp",
+        audio: "./audio/11.mp3"
+      },
+      {
+        page: 12,
+        text: "Wusss! Ayunan meluncur tinggi. Arka selalu ingat berdoa agar selalu bermain dengan aman.",
+        image: "./images/12.webp",
+        audio: "./audio/12.mp3"
+      },
+      {
+        page: 13,
+        text: "Bel pulang sekolah berdentang riang. Arka merapikan tas dan berterima kasih atas hari yang seru.",
+        image: "./images/13.webp",
+        audio: "./audio/13.mp3"
+      },
+      {
+        page: 14,
+        text: "Tik-tik-tik! Rintik hujan mulai turun. Arka membuka payung dan berdoa memohon keselamatan dari basah.",
+        image: "./images/14.webp",
+        audio: "./audio/14.mp3"
+      },
+      {
+        page: 15,
+        text: "Tiba di rumah tanpa basah! Arka mengucap salam dan bersyukur bisa pulang dengan selamat.",
+        image: "./images/15.webp",
+        audio: "./audio/15.mp3"
+      },
+      {
+        page: 16,
+        text: "Sore hari tiba, saatnya membuat PR. Arka berdoa agar selalu tekun dan rajin belajar.",
+        image: "./images/16.webp",
+        audio: "./audio/16.mp3"
+      },
+      {
+        page: 17,
+        text: "Tanaman di kebun disiram hingga segar. Arka kagum melihat indahnya bunga ciptaan Tuhan.",
+        image: "./images/17.webp",
+        audio: "./audio/17.mp3"
+      },
+      {
+        page: 18,
+        text: "Malam telah tiba, seluruh keluarga berkumpul. Mereka berdoa bersama mensyukuri hidangan makan malam.",
+        image: "./images/18.webp",
+        audio: "./audio/18.mp3"
+      },
+      {
+        page: 19,
+        text: "Gigi disikat bersih, wajah dicuci segar. Arka bersiap menyambut mimpi yang indah.",
+        image: "./images/19.webp",
+        audio: "./audio/19.mp3"
+      },
+      {
+        page: 20,
+        text: "Bintang bersinar di langit malam. Arka menutup hari dengan doa damai, lalu tidur nyenyak.",
+        image: "./images/20.webp",
+        audio: "./audio/20.mp3"
+      }
+    ];
+
+    // -------------------------------------------------------------
+    // DATA KUIS PEMAHAMAN BACAAN
+    // -------------------------------------------------------------
+    const quizData = [
+      {
+        q: "Apa yang dilakukan Arka sebelum menyantap sarapan dan bekal apelnya?",
+        options: ["Langsung menghabiskannya", "Menundukkan kepala dan berdoa", "Bermain lari-larian"],
+        answer: 1
+      },
+      {
+        q: "Bagaimana sikap Arka saat teman di sebelahnya lupa membawa bekal?",
+        options: ["Membagi kuenya dengan tulus", "Membiarkannya kelaparan", "Menertawakan temannya"],
+        answer: 0
+      },
+      {
+        q: "Apa yang dilakukan Arka ketika menghadapi soal berhitung yang sulit?",
+        options: ["Menangis dan menyerah", "Melihat contekan teman", "Berdoa memohon pikiran yang terang"],
+        answer: 2
+      },
+      {
+        q: "Kapan Arka menyiram tanaman di kebun hingga segar?",
+        options: ["Malam hari", "Sore hari", "Tengah malam"],
+        answer: 1
+      }
+    ];
+
+    let currentIndex = 0;
+    let isFlipping = false;
+    let inQuizMode = false;
+    let currentQuizIndex = 0;
+    let quizScore = 0;
+
+    // DOM Elements
+    const bookStage = document.getElementById('bookStage');
+    const pageSheet = document.getElementById('pageSheet');
+    const storyImage = document.getElementById('storyImage');
+    const textFlow = document.getElementById('textFlow');
+    const progressFill = document.getElementById('progressFill');
+    const pageIndicator = document.getElementById('pageIndicator');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+    const btnPageAudio = document.getElementById('btnPageAudio');
+    const audioElement = document.getElementById('audioElement');
+    const btnThemeToggle = document.getElementById('btnThemeToggle');
+    const navControls = document.getElementById('navControls');
+
+    // Quiz DOM
+    const quizView = document.getElementById('quizView');
+    const quizQuestionBox = document.getElementById('quizQuestionBox');
+    const quizStep = document.getElementById('quizStep');
+    const quizQuestionText = document.getElementById('quizQuestionText');
+    const quizOptions = document.getElementById('quizOptions');
+    const quizResult = document.getElementById('quizResult');
+    const starsBox = document.getElementById('starsBox');
+    const resultScore = document.getElementById('resultScore');
+    const resultMsg = document.getElementById('resultMsg');
+    const btnRestartStory = document.getElementById('btnRestartStory');
+
+    // 1. SINTESIS SUARA KERTAS (Web Audio API)
+    function playPageTurnSound() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const bufferSize = ctx.sampleRate * 0.12;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+        }
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1400;
+        filter.Q.value = 1.2;
+
+        noise.connect(filter);
+        filter.connect(ctx.destination);
+        noise.start();
+      } catch (e) {}
+    }
+
+    // 2. RENDER HALAMAN
+    function renderContent(index) {
+      const pageData = storyPages[index];
+
+      storyImage.src = pageData.image;
+      audioElement.src = pageData.audio;
+
+      textFlow.innerHTML = '';
+      const words = pageData.text.split(' ');
+      words.forEach(word => {
+        const span = document.createElement('span');
+        span.className = 'clickable-word';
+        span.textContent = word;
+        span.onclick = () => speakWord(word, span);
+        textFlow.appendChild(span);
+      });
+
+      const percent = ((index + 1) / storyPages.length) * 100;
+      progressFill.style.width = percent + '%';
+      pageIndicator.textContent = `${index + 1}/${storyPages.length}`;
+
+      btnPrev.disabled = (index === 0);
+      btnNext.textContent = (index === storyPages.length - 1) ? 'Ikuti Kuis 🎯' : 'Balik Halaman';
+    }
+
+    // 3. ANIMASI MEMBALIK HALAMAN (3D)
+    function turnPage(direction) {
+      if (isFlipping) return;
+      isFlipping = true;
+
+      audioElement.pause();
+      btnPageAudio.classList.remove('playing');
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+      playPageTurnSound();
+
+      const outClass = (direction === 'next') ? 'flipping-out-next' : 'flipping-out-prev';
+      const inClass = (direction === 'next') ? 'flipping-in-next' : 'flipping-in-prev';
+
+      pageSheet.classList.add(outClass);
+
+      setTimeout(() => {
+        if (direction === 'next') {
+          currentIndex++;
+        } else {
+          currentIndex--;
+        }
+        renderContent(currentIndex);
+
+        pageSheet.classList.remove(outClass);
+        pageSheet.classList.add(inClass);
+
+        setTimeout(() => {
+          pageSheet.classList.remove(inClass);
+          isFlipping = false;
+        }, 400);
+      }, 380);
+    }
+
+    // 4. UCAPKAN PER KATA (TTS)
+    function speakWord(word, element) {
+      if (!('speechSynthesis' in window)) return;
+
+      audioElement.pause();
+      btnPageAudio.classList.remove('playing');
+      window.speechSynthesis.cancel();
+
+      const cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
+      const utterance = new SpeechSynthesisUtterance(cleanWord);
+      utterance.lang = 'id-ID';
+      utterance.rate = 0.85;
+
+      element.classList.add('speaking');
+      utterance.onend = () => element.classList.remove('speaking');
+      utterance.onerror = () => element.classList.remove('speaking');
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // 5. AUDIO FULL SATU HALAMAN
+    btnPageAudio.onclick = () => {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+      if (audioElement.paused) {
+        audioElement.play().then(() => {
+          btnPageAudio.classList.add('playing');
+        }).catch(err => console.warn(err));
+      } else {
+        audioElement.pause();
+        btnPageAudio.classList.remove('playing');
+      }
+    };
+
+    audioElement.onended = () => {
+      btnPageAudio.classList.remove('playing');
+    };
+
+    // 6. GESTURE SWIPE LAYAR (Touch Gestures)
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    bookStage.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    bookStage.addEventListener('touchend', (e) => {
+      if (inQuizMode || isFlipping) return;
+
+      const touchEndX = e.changedTouches[0].screenX;
+      const touchEndY = e.changedTouches[0].screenY;
+      const diffX = touchEndX - touchStartX;
+      const diffY = touchEndY - touchStartY;
+
+      // Pastikan gerakan horizontal lebih dominan dan jarak usap cukup (> 50px)
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+        if (diffX < 0) {
+          // Swipe Kiri -> Halaman Berikutnya
+          if (currentIndex < storyPages.length - 1) {
+            turnPage('next');
+          } else {
+            startQuiz();
+          }
+        } else {
+          // Swipe Kanan -> Halaman Sebelumnya
+          if (currentIndex > 0) {
+            turnPage('prev');
+          }
+        }
+      }
+    }, { passive: true });
+
+    // 7. PERALIHAN MODE MALAM (Dark Mode Toggle)
+    btnThemeToggle.onclick = () => {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      btnThemeToggle.textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('arka_storybook_theme', isDark ? 'dark' : 'light');
+    };
+
+    // Load preferensi tema tersimpan
+    if (localStorage.getItem('arka_storybook_theme') === 'dark') {
+      document.body.classList.add('dark-mode');
+      btnThemeToggle.textContent = '☀️';
+    }
+
+    // 8. LOGIKA KUIS PEMAHAMAN BACAAN
+    function startQuiz() {
+      inQuizMode = true;
+      currentQuizIndex = 0;
+      quizScore = 0;
+
+      audioElement.pause();
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+      bookStage.style.display = 'none';
+      navControls.style.display = 'none';
+      quizView.style.display = 'flex';
+      quizQuestionBox.style.display = 'block';
+      quizResult.style.display = 'none';
+
+      renderQuizQuestion();
+    }
+
+    function renderQuizQuestion() {
+      const qData = quizData[currentQuizIndex];
+      quizStep.textContent = `${currentQuizIndex + 1}/${quizData.length}`;
+      quizQuestionText.textContent = qData.q;
+      quizOptions.innerHTML = '';
+
+      qData.options.forEach((optText, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-opt-btn';
+        btn.innerHTML = `<span style="opacity: 0.6;">${String.fromCharCode(65 + idx)}.</span> ${optText}`;
+        btn.onclick = () => checkQuizAnswer(idx, qData.answer, btn);
+        quizOptions.appendChild(btn);
+      });
+    }
+
+    function checkQuizAnswer(selectedIdx, correctIdx, btnElement) {
+      const allOptButtons = quizOptions.querySelectorAll('.quiz-opt-btn');
+      allOptButtons.forEach(b => b.style.pointerEvents = 'none');
+
+      if (selectedIdx === correctIdx) {
+        btnElement.classList.add('correct');
+        quizScore += 25; // 4 soal total 100
+      } else {
+        btnElement.classList.add('wrong');
+        allOptButtons[correctIdx].classList.add('correct');
+      }
+
+      setTimeout(() => {
+        if (currentQuizIndex < quizData.length - 1) {
+          currentQuizIndex++;
+          renderQuizQuestion();
+        } else {
+          showQuizResult();
+        }
+      }, 1200);
+    }
+
+    function showQuizResult() {
+      quizQuestionBox.style.display = 'none';
+      quizResult.style.display = 'flex';
+
+      resultScore.textContent = `${quizScore} Poin`;
+
+      if (quizScore === 100) {
+        starsBox.textContent = "⭐⭐⭐";
+        resultMsg.textContent = "Luar biasa! Kamu memahami seluruh rutinitas baik dan doa Arka dengan sempurna!";
+      } else if (quizScore >= 75) {
+        starsBox.textContent = "⭐⭐";
+        resultMsg.textContent = "Bagus sekali! Hampir semua pertanyaan berhasil kamu jawab dengan benar.";
+      } else {
+        starsBox.textContent = "⭐";
+        resultMsg.textContent = "Tetap semangat! Ayo kita baca kembali cerita Arka dari awal bersama-sama.";
+      }
+    }
+
+    btnRestartStory.onclick = () => {
+      inQuizMode = false;
+      currentIndex = 0;
+      quizView.style.display = 'none';
+      bookStage.style.display = 'flex';
+      navControls.style.display = 'flex';
+      renderContent(currentIndex);
+    };
+
+    // Navigasi Tombol
+    btnNext.onclick = () => {
+      if (currentIndex < storyPages.length - 1) {
+        turnPage('next');
+      } else {
+        startQuiz();
+      }
+    };
+
+    btnPrev.onclick = () => {
+      if (currentIndex > 0) {
+        turnPage('prev');
+      }
+    };
+
+    // Service Worker PWA (Opsional)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
+    // Inisialisasi awal
+    renderContent(currentIndex);
+  </script>
+</body>
+</html>
