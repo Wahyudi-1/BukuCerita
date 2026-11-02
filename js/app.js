@@ -1,7 +1,7 @@
 /**
  * ================================================================
  * APP.JS - MESIN BUKU CERITA INTERAKTIF TERLENGKAP
- * (AUDIO ENGINE, INSTANT PLAY, HAPTIC, 1-CLICK PWA INSTALL, NETWORK)
+ * (AUDIO ENGINE, DYNAMIC TTS LANG, HAPTIC, 1-CLICK PWA, NETWORK)
  * ================================================================
  */
 
@@ -442,13 +442,32 @@ function turnPage(direction) {
   }, 180);
 }
 
-// 15. SUARA KATA (TTS)
+// 15. SUARA KATA (TTS DENGAN DETEKSI BAHASA OTOMATIS)
 function speakWord(word, element) {
   if (!('speechSynthesis' in window)) return;
-  triggerHaptic('tap'); audioElement.pause(); btnPageAudio.classList.remove('playing'); window.speechSynthesis.cancel();
+  triggerHaptic('tap'); 
+  audioElement.pause(); 
+  btnPageAudio.classList.remove('playing'); 
+  window.speechSynthesis.cancel();
+
   const cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
   const utterance = new SpeechSynthesisUtterance(cleanWord);
-  utterance.lang = 'id-ID'; utterance.rate = 0.85;
+
+  // Deteksi bahasa dari cerita yang sedang aktif (default: id-ID)
+  const targetLang = (currentStory && currentStory.lang) ? currentStory.lang : 'id-ID';
+  utterance.lang = targetLang;
+  utterance.rate = 0.85;
+
+  // Pilih profil suara peramban yang cocok dengan target bahasa
+  const voices = window.speechSynthesis.getVoices();
+  const matchedVoice = voices.find(v => 
+    v.lang.toLowerCase() === targetLang.toLowerCase() || 
+    v.lang.toLowerCase().replace('_', '-').startsWith(targetLang.slice(0, 2).toLowerCase())
+  );
+  if (matchedVoice) {
+    utterance.voice = matchedVoice;
+  }
+
   element.classList.add('speaking');
   utterance.onend = () => element.classList.remove('speaking');
   utterance.onerror = () => element.classList.remove('speaking');
@@ -568,7 +587,7 @@ let deferredPrompt = null;
 // Sembunyikan banner sejak awal. Hanya muncul saat sistem siap 1-Klik.
 if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
 
-// Event ini HANYA ditembakkan oleh Chrome/Android saat syarat PWA (Icon, manifest, SW) komplit.
+// Event ini HANYA ditembakkan oleh Chrome/Android saat syarat PWA komplit.
 window.addEventListener('beforeinstallprompt', (e) => {
   // Cegah browser menampilkan mini-infobar instalasi bawaannya
   e.preventDefault();
@@ -584,9 +603,9 @@ window.addEventListener('beforeinstallprompt', (e) => {
 async function executePwaInstall() {
   triggerHaptic('tap');
 
-  if (!deferredPrompt) return; // Jika kosong, batalkan klik (aman dari error alert manual)
+  if (!deferredPrompt) return; // Jika kosong, batalkan klik (aman tanpa pesan alert manual)
 
-  // 1-CLICK: Langsung panggil popup dialog "Instal Aplikasi" resmi dari bawah layar HP
+  // 1-CLICK: Langsung panggil dialog "Instal Aplikasi" resmi dari bawah layar HP
   deferredPrompt.prompt();
 
   // Tunggu siswa menekan "Instal" atau "Batal"
