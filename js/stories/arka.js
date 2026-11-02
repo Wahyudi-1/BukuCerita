@@ -3,6 +3,7 @@ window.STORIES_DATABASE = window.STORIES_DATABASE || [];
 window.STORIES_DATABASE.push({
   id: "arka-berdoa",
   title: "Kebiasaan Baik Arka",
+  lang: "id-ID", // Otomatis mengaktifkan pelafalan bahasa Indonesia
   category: "Fase Fondasi / A",
   cover: "./images/arka/01.jpg",
   description: "Kisah Arka yang selalu memulai dan menutup hari dengan doa serta rasa syukur.",
