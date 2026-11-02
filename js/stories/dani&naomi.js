@@ -3,6 +3,7 @@ window.STORIES_DATABASE = window.STORIES_DATABASE || [];
 window.STORIES_DATABASE.push({
   id: "dani-naomi-plant-a-tree",
   title: "Dani and Naomi Plant a Tree",
+  lang: "en-US", // Tambahkan baris ini untuk cerita bahasa Inggris
   category: "TK B / Fase Pondasi",
   cover: "./images/dani-naomi/dn01_compressed.jpg",
   description: "A joyful Papuan story teaching kindergarten children how to plant seeds and love mother earth.",
