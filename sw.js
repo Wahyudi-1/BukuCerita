@@ -5,7 +5,7 @@
  * ================================================================
  */
 
-const CACHE_NAME = 'buku-cerita-v3.1';
+const CACHE_NAME = 'buku-cerita-v3.2';
 
 // Aset Inti Kerangka Aplikasi (App Shell)
 const CORE_ASSETS = [
