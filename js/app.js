@@ -851,51 +851,48 @@ window.addEventListener('offline', () => {
 // 21. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT)
 let deferredPrompt = null;
 
-// Sembunyikan semua tombol instal secara default sejak awal
-if (btnInstallApp) btnInstallApp.style.display = 'none';
-if (btnInstallReader) btnInstallReader.style.display = 'none';
-if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
+// Deteksi apakah sedang dibuka di dalam aplikasi yang sudah diinstal
+function isRunningStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
 
-// Event ini HANYA dipicu Chrome jika syarat PWA valid (HTTPS, sw.js, manifest, & ikon lengkap)
+// Paksa tampilkan tombol pasang jika aplikasi berjalan di browser biasa
+function updateInstallUI() {
+  const displayStyle = isRunningStandalone() ? 'none' : 'flex';
+  if (btnInstallApp) btnInstallApp.style.display = displayStyle;
+  if (btnInstallReader) btnInstallReader.style.display = displayStyle;
+  if (pwaInstallBanner) pwaInstallBanner.style.display = displayStyle;
+}
+
+// Simpan prompt bawaan Chrome secara diam-diam
 window.addEventListener('beforeinstallprompt', (e) => {
-  // Cegah browser menampilkan mini-infobar default di bawah layar
   e.preventDefault();
-  
-  // Simpan event pemicu asli dari sistem ke memori
   deferredPrompt = e;
-
-  // BARU TAMPILKAN tombol pasang karena sistem sudah dijamin siap 100%
-  if (btnInstallApp) btnInstallApp.style.display = 'flex';
-  if (btnInstallReader) btnInstallReader.style.display = 'flex';
-  if (pwaInstallBanner) pwaInstallBanner.style.display = 'flex';
 });
 
 // Eksekusi Pemicu Native Prompt Langsung (Tanpa Titik Tiga)
 async function executePwaInstall() {
   triggerHaptic('tap');
 
-  if (!deferredPrompt) {
-    return; // Abaikan klik jika pemicu sistem belum siap
+  if (deferredPrompt) {
+    // 1-CLICK: Langsung panggil popup konfirmasi instalasi bawaan Chrome / Android
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      // Sembunyikan tombol jika pengguna setuju memasang
+      if (btnInstallApp) btnInstallApp.style.display = 'none';
+      if (btnInstallReader) btnInstallReader.style.display = 'none';
+      if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
+    }
+    deferredPrompt = null; // Reset
+  } else {
+    // Fallback jika belum siap atau menggunakan iOS/Safari
+    alert("Sistem belum siap untuk instalasi 1-klik (atau Anda menggunakan browser Safari iPhone).\n\nAlternatif: Tekan ikon Titik Tiga (⋮) atau tombol Bagikan, lalu pilih 'Tambahkan ke Layar Utama'.");
   }
-
-  // LANGSUNG buka jendela instalasi resmi dari sistem Android / Chrome
-  deferredPrompt.prompt();
-
-  // Tunggu reaksi pengguna (mengeklik "Instal" atau "Batal" di pop-up sistem)
-  const { outcome } = await deferredPrompt.userChoice;
-  
-  if (outcome === 'accepted') {
-    // Jika setuju instal, sembunyikan semua tombol instal di web
-    if (btnInstallApp) btnInstallApp.style.display = 'none';
-    if (btnInstallReader) btnInstallReader.style.display = 'none';
-    if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
-  }
-
-  // Kosongkan pemicu setelah digunakan
-  deferredPrompt = null;
 }
 
-// Pasang fungsi eksekusi ke semua tombol
+// Hubungkan semua tombol ke fungsi eksekusi 1-klik
 if (btnInstallApp) btnInstallApp.onclick = executePwaInstall;
 if (btnInstallReader) btnInstallReader.onclick = executePwaInstall;
 if (btnInstallPwa) btnInstallPwa.onclick = executePwaInstall;
@@ -907,7 +904,7 @@ if (btnCloseInstallBanner) {
   };
 }
 
-// Hilangkan tombol saat sistem mendeteksi aplikasi sudah berhasil terpasang
+// Sembunyikan semua tombol pasang jika peramban sukses menginstal
 window.addEventListener('appinstalled', () => {
   if (btnInstallApp) btnInstallApp.style.display = 'none';
   if (btnInstallReader) btnInstallReader.style.display = 'none';
@@ -922,4 +919,5 @@ window.addEventListener('DOMContentLoaded', () => {
   updateAutoPlayUI();
   updateHapticUI();
   updateNetworkStatus();
+  updateInstallUI(); // Paksa verifikasi dan pemunculan tombol instalasi
 });
