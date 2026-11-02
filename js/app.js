@@ -1,6 +1,7 @@
 /**
  * ================================================================
- * APP.JS - MESIN BUKU CERITA INTERAKTIF (DIRECT NATIVE INSTALL)
+ * APP.JS - MESIN BUKU CERITA INTERAKTIF TERLENGKAP
+ * (AUDIO ENGINE, INSTANT PLAY, HAPTIC, 1-CLICK PWA INSTALL, NETWORK)
  * ================================================================
  */
 
@@ -15,6 +16,7 @@ let correctCount = 0;
 const preloadedImages = {};
 const preloadedAudios = {};
 
+// Status preferensi pengguna
 let isAutoPlay = localStorage.getItem('storybook_autoplay') !== 'false';
 let isHapticEnabled = localStorage.getItem('storybook_haptic') !== 'false';
 
@@ -66,9 +68,7 @@ const pwaInstallBanner = document.getElementById('pwaInstallBanner');
 const btnInstallPwa = document.getElementById('btnInstallPwa');
 const btnCloseInstallBanner = document.getElementById('btnCloseInstallBanner');
 
-let deferredPrompt = null; // Menyimpan tiket resmi instalasi Chrome
-
-// 3. MODUL HAPTIC FEEDBACK (VIBRATION API)
+// 3. MODUL HAPTIC FEEDBACK (GETARAN VIBRATION API)
 function triggerHaptic(type) {
   if (!isHapticEnabled || !('vibrate' in navigator)) return;
 
@@ -848,52 +848,54 @@ window.addEventListener('offline', () => {
   triggerHaptic('wrong');
 });
 
-// 21. PEMICU INSTALASI LANGSUNG (NATIVE BROWSER PROMPT)
-function isRunningStandalone() {
-  return window.matchMedia('(display-mode: standalone)').matches || 
-         window.navigator.standalone === true || 
-         document.referrer.includes('android-app://');
-}
+// 21. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT)
+let deferredPrompt = null;
 
-// Tangkap event sebelum instalasi dari sistem browser
+// Sembunyikan semua tombol instal secara default sejak awal
+if (btnInstallApp) btnInstallApp.style.display = 'none';
+if (btnInstallReader) btnInstallReader.style.display = 'none';
+if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
+
+// Event ini HANYA dipicu Chrome jika syarat PWA valid (HTTPS, sw.js, manifest, & ikon lengkap)
 window.addEventListener('beforeinstallprompt', (e) => {
-  // Cegah browser menampilkan mini-infobar default Chrome
+  // Cegah browser menampilkan mini-infobar default di bawah layar
   e.preventDefault();
-  // Simpan event sistem instalasi ke memori
+  
+  // Simpan event pemicu asli dari sistem ke memori
   deferredPrompt = e;
 
-  // Tampilkan tombol instalasi hanya saat event native ini sudah siap
-  if (!isRunningStandalone()) {
-    if (btnInstallApp) btnInstallApp.style.display = 'flex';
-    if (btnInstallReader) btnInstallReader.style.display = 'flex';
-    if (pwaInstallBanner) pwaInstallBanner.style.display = 'flex';
-  }
+  // BARU TAMPILKAN tombol pasang karena sistem sudah dijamin siap 100%
+  if (btnInstallApp) btnInstallApp.style.display = 'flex';
+  if (btnInstallReader) btnInstallReader.style.display = 'flex';
+  if (pwaInstallBanner) pwaInstallBanner.style.display = 'flex';
 });
 
-// Eksekusi Pemicu Native Prompt Langsung
+// Eksekusi Pemicu Native Prompt Langsung (Tanpa Titik Tiga)
 async function executePwaInstall() {
   triggerHaptic('tap');
 
   if (!deferredPrompt) {
-    console.warn("Event instalasi belum siap atau aplikasi sudah terpasang.");
-    return;
+    return; // Abaikan klik jika pemicu sistem belum siap
   }
 
-  // LANGSUNG buka jendela instalasi resmi Chrome / Android
+  // LANGSUNG buka jendela instalasi resmi dari sistem Android / Chrome
   deferredPrompt.prompt();
 
-  // Tunggu pilihan pengguna (Instal atau Batal)
+  // Tunggu reaksi pengguna (mengeklik "Instal" atau "Batal" di pop-up sistem)
   const { outcome } = await deferredPrompt.userChoice;
+  
   if (outcome === 'accepted') {
+    // Jika setuju instal, sembunyikan semua tombol instal di web
     if (btnInstallApp) btnInstallApp.style.display = 'none';
     if (btnInstallReader) btnInstallReader.style.display = 'none';
     if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
   }
 
-  // Kosongkan setelah dipakai
+  // Kosongkan pemicu setelah digunakan
   deferredPrompt = null;
 }
 
+// Pasang fungsi eksekusi ke semua tombol
 if (btnInstallApp) btnInstallApp.onclick = executePwaInstall;
 if (btnInstallReader) btnInstallReader.onclick = executePwaInstall;
 if (btnInstallPwa) btnInstallPwa.onclick = executePwaInstall;
@@ -905,7 +907,7 @@ if (btnCloseInstallBanner) {
   };
 }
 
-// Hilangkan tombol saat aplikasi berhasil dipasang
+// Hilangkan tombol saat sistem mendeteksi aplikasi sudah berhasil terpasang
 window.addEventListener('appinstalled', () => {
   if (btnInstallApp) btnInstallApp.style.display = 'none';
   if (btnInstallReader) btnInstallReader.style.display = 'none';
