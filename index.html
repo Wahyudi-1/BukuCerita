@@ -5,24 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Perpustakaan Buku Cerita Interaktif</title>
   
-  <!-- Konfigurasi PWA & Layar Utama -->
+  <!-- Konfigurasi PWA -->
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#58cc02">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Storybook">
+  <meta name="apple-mobile-web-app-title" content="BukuCerita">
   <link rel="apple-touch-icon" href="./images/icon-192.png">
 
-  <!-- Berkas Gaya Tampilan & Animasi 3D -->
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- Canvas Overlay untuk Animasi Konfeti -->
+
+  <!-- Canvas Overlay Konfeti -->
   <canvas id="confettiCanvas"></canvas>
 
   <div class="app-container">
-    <!-- Konten index.html lainnya tetap sama -->
-  <div class="app-container">
+
+    <!-- ================= BANNER INSTALASI APLIKASI PWA (MOBILE) ================= -->
+    <div id="pwaInstallBanner" class="pwa-install-banner" style="display: none;">
+      <div class="pwa-banner-content">
+        <span class="pwa-icon">📲</span>
+        <div class="pwa-text">
+          <strong>Pasang Aplikasi Cerita</strong>
+          <p>Baca buku tanpa internet langsung dari layar HP kamu!</p>
+        </div>
+      </div>
+      <div class="pwa-banner-actions">
+        <button id="btnInstallPwa" class="btn-install-now">Pasang</button>
+        <button id="btnCloseInstallBanner" class="btn-close-banner">✕</button>
+      </div>
+    </div>
 
     <!-- ================= 1. HALAMAN BERANDA (RAK BUKU) ================= -->
     <div id="homeView" class="view-screen">
@@ -31,11 +44,15 @@
           <h1>📖 Perpustakaan Cerita</h1>
           <p>Pilih buku cerita bergambar yang ingin kamu baca:</p>
         </div>
-        <button class="btn-tool" id="btnThemeToggleHome" title="Ganti Mode Malam">🌙</button>
+        <div class="header-tools">
+          <button class="btn-tool" id="btnResetHistory" title="Reset Riwayat Bintang & Nilai">🗑️</button>
+          <button class="btn-tool" id="btnFullScreenHome" title="Layar Penuh (Full Screen)">⛶</button>
+          <button class="btn-tool" id="btnThemeToggleHome" title="Ganti Mode Malam">🌙</button>
+        </div>
       </div>
 
       <div class="stories-grid" id="storiesGrid">
-        <!-- Kartu cerita di-render secara otomatis oleh app.js -->
+        <!-- Kartu buku di-render secara otomatis oleh app.js -->
       </div>
     </div>
 
@@ -45,6 +62,8 @@
       <!-- Top Navigation Bar -->
       <div class="top-bar">
         <button class="btn-tool" id="btnBackHome" title="Kembali ke Beranda">🏠</button>
+        <button class="btn-tool" id="btnAutoPlayToggle" title="Narasi Otomatis (On/Off)">📢</button>
+        <button class="btn-tool" id="btnFullScreenReader" title="Layar Penuh (Full Screen)">⛶</button>
         <button class="btn-tool" id="btnThemeToggleReader" title="Ganti Mode Malam">🌙</button>
         <div class="progress-track">
           <div class="progress-fill" id="progressFill"></div>
@@ -52,7 +71,7 @@
         <div class="page-indicator" id="pageIndicator">1/20</div>
       </div>
 
-      <!-- 3D Book Stage (Mendukung Touch Swipe) -->
+      <!-- 3D Book Stage (Mendukung Swipe Gestures) -->
       <div class="book-stage" id="bookStage">
         <div class="page-sheet" id="pageSheet">
           <div class="image-frame">
@@ -99,24 +118,22 @@
 
   </div>
 
-  <!-- Audio Player Utama -->
   <audio id="audioElement"></audio>
 
-  <!-- ================= DAFTAR CERITA ================= -->
-  <!-- Tambahkan script cerita baru di atas app.js -->
+  <!-- ================= DAFTAR BUKU CERITA ================= -->
   <script src="js/stories/arka.js"></script>
-      <script src="js/stories/aisyah.js"></script>
+  <script src="js/stories/aisyah.js"></script>
 
   <!-- ================= MESIN UTAMA ================= -->
   <script src="js/app.js"></script>
 
-  <!-- Pendaftaran PWA Service Worker -->
+  <!-- Registrasi Service Worker PWA -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('Service Worker aktif:', reg.scope))
-          .catch(err => console.log('Service Worker gagal:', err));
+          .then(reg => console.log('SW terdaftar pada scope:', reg.scope))
+          .catch(err => console.log('SW gagal didaftarkan:', err));
       });
     }
   </script>
