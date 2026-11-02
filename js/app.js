@@ -1,7 +1,6 @@
 /**
  * ================================================================
- * APP.JS - MESIN BUKU CERITA LENGKAP
- * (AUDIO ENGINE, AUTOPLAY TOGGLE, RESET QUIZ, FULLSCREEN, PWA INSTALL)
+ * APP.JS - MESIN BUKU CERITA INTERAKTIF TERLENGKAP
  * ================================================================
  */
 
@@ -16,8 +15,9 @@ let correctCount = 0;
 const preloadedImages = {};
 const preloadedAudios = {};
 
-// Ambil preferensi narasi otomatis (default: aktif / true)
+// Status preferensi pengguna
 let isAutoPlay = localStorage.getItem('storybook_autoplay') !== 'false';
+let isHapticEnabled = localStorage.getItem('storybook_haptic') !== 'false';
 
 // 2. REFERENSI ELEMEN DOM
 const homeView = document.getElementById('homeView');
@@ -55,6 +55,8 @@ const btnResetHistory = document.getElementById('btnResetHistory');
 const btnFullScreenHome = document.getElementById('btnFullScreenHome');
 const btnFullScreenReader = document.getElementById('btnFullScreenReader');
 const btnAutoPlayToggle = document.getElementById('btnAutoPlayToggle');
+const btnHapticToggleHome = document.getElementById('btnHapticToggleHome');
+const btnHapticToggleReader = document.getElementById('btnHapticToggleReader');
 const confettiCanvas = document.getElementById('confettiCanvas');
 
 const pwaInstallBanner = document.getElementById('pwaInstallBanner');
@@ -62,7 +64,69 @@ const btnInstallPwa = document.getElementById('btnInstallPwa');
 const btnCloseInstallBanner = document.getElementById('btnCloseInstallBanner');
 let deferredPrompt = null;
 
-// 3. MESIN AUDIO SINTETIS (WEB AUDIO API)
+// 3. MODUL HAPTIC FEEDBACK (GETARAN VIBRATION API)
+function triggerHaptic(type) {
+  if (!isHapticEnabled || !('vibrate' in navigator)) return;
+
+  switch (type) {
+    case 'tap':
+      navigator.vibrate(15);
+      break;
+    case 'correct':
+      navigator.vibrate([35, 40, 45]);
+      break;
+    case 'wrong':
+      navigator.vibrate([70, 50, 90]);
+      break;
+    case 'celebrate':
+      navigator.vibrate([40, 40, 40, 40, 80, 50, 120]);
+      break;
+    default:
+      navigator.vibrate(20);
+  }
+}
+
+function updateHapticUI() {
+  const icon = isHapticEnabled ? '📳' : '📴';
+  const title = isHapticEnabled ? 'Efek Getar: AKTIF (Klik untuk menonaktifkan)' : 'Efek Getar: NONAKTIF (Klik untuk mengaktifkan)';
+  
+  [btnHapticToggleHome, btnHapticToggleReader].forEach(btn => {
+    if (!btn) return;
+    btn.textContent = icon;
+    btn.title = title;
+    btn.classList.toggle('haptic-off', !isHapticEnabled);
+  });
+}
+
+function toggleHaptic() {
+  isHapticEnabled = !isHapticEnabled;
+  localStorage.setItem('storybook_haptic', isHapticEnabled);
+  if (isHapticEnabled) triggerHaptic('tap');
+  updateHapticUI();
+}
+
+if (btnHapticToggleHome) btnHapticToggleHome.onclick = toggleHaptic;
+if (btnHapticToggleReader) btnHapticToggleReader.onclick = toggleHaptic;
+
+// 4. KUNCI ORIENTASI CERDAS (PORTRAIT DI HP & LANDSCAPE DI TABLET)
+async function lockScreenOrientation() {
+  try {
+    if (screen.orientation && screen.orientation.lock) {
+      // Deteksi tablet jika dimensi layar terpendek >= 600px atau lebar jendela >= 768px
+      const isTablet = Math.min(window.screen.width, window.screen.height) >= 600 || window.innerWidth >= 768;
+      
+      if (isTablet) {
+        await screen.orientation.lock('landscape');
+      } else {
+        await screen.orientation.lock('portrait-primary');
+      }
+    }
+  } catch (err) {
+    console.warn("Screen orientation lock diabaikan peramban:", err);
+  }
+}
+
+// 5. MESIN AUDIO SINTETIS (WEB AUDIO API)
 let audioCtx = null;
 
 function getAudioContext() {
@@ -182,7 +246,7 @@ function playFanfareSound() {
   });
 }
 
-// 4. ANIMASI TABURAN KONFETI CANVAS
+// 6. ANIMASI TABURAN KONFETI
 function launchConfetti() {
   if (!confettiCanvas) return;
   const ctx = confettiCanvas.getContext('2d');
@@ -251,7 +315,7 @@ function launchConfetti() {
   renderConfetti();
 }
 
-// 5. SISTEM PRELOADING
+// 7. PRELOADING RAM (GAMBAR & AUDIO)
 function preloadStoryImages(story) {
   if (!story || !story.pages) return;
   story.pages.forEach(p => {
@@ -275,7 +339,7 @@ function preloadStoryAudios(story) {
   });
 }
 
-// 6. RENDER RAK BUKU & LENCANA RIWAYAT
+// 8. RENDER RAK BUKU DI BERANDA
 function renderHomeShelf() {
   if (!storiesGrid) return;
   const listCerita = window.STORIES_DATABASE || [];
@@ -336,16 +400,16 @@ const storyPoller = setInterval(() => {
   }
 }, 150);
 
-// 7. SAKELAR NARASI OTOMATIS (AUTOPLAY TOGGLE)
+// 9. SAKELAR NARASI OTOMATIS
 function updateAutoPlayUI() {
   if (!btnAutoPlayToggle) return;
   if (isAutoPlay) {
     btnAutoPlayToggle.textContent = '📢';
-    btnAutoPlayToggle.title = 'Narasi Otomatis: AKTIF (Klik untuk menonaktifkan)';
+    btnAutoPlayToggle.title = 'Narasi Otomatis: AKTIF (Klik untuk mematikan)';
     btnAutoPlayToggle.classList.remove('autoplay-off');
   } else {
     btnAutoPlayToggle.textContent = '🔇';
-    btnAutoPlayToggle.title = 'Narasi Otomatis: NONAKTIF (Klik untuk mengaktifkan)';
+    btnAutoPlayToggle.title = 'Narasi Otomatis: NONAKTIF (Klik untuk menyalakan)';
     btnAutoPlayToggle.classList.add('autoplay-off');
   }
 }
@@ -354,9 +418,9 @@ if (btnAutoPlayToggle) {
   btnAutoPlayToggle.onclick = () => {
     isAutoPlay = !isAutoPlay;
     localStorage.setItem('storybook_autoplay', isAutoPlay);
+    triggerHaptic('tap');
     updateAutoPlayUI();
 
-    // Jika dimatikan saat audio sedang berbunyi, langsung pause
     if (!isAutoPlay && !audioElement.paused) {
       audioElement.pause();
       btnPageAudio.classList.remove('playing');
@@ -364,7 +428,7 @@ if (btnAutoPlayToggle) {
   };
 }
 
-// 8. KONTROL MODE LAYAR PENUH (FULL SCREEN)
+// 10. KONTROL LAYAR PENUH
 function enterFullScreen() {
   const docElm = document.documentElement;
   if (!document.fullscreenElement && !document.webkitFullscreenElement) {
@@ -377,6 +441,7 @@ function enterFullScreen() {
 }
 
 function toggleFullScreen() {
+  triggerHaptic('tap');
   if (!document.fullscreenElement && !document.webkitFullscreenElement) {
     enterFullScreen();
   } else {
@@ -391,26 +456,29 @@ function toggleFullScreen() {
 if (btnFullScreenHome) btnFullScreenHome.onclick = toggleFullScreen;
 if (btnFullScreenReader) btnFullScreenReader.onclick = toggleFullScreen;
 
-// 9. RESET RIWAYAT KUIS
+// 11. RESET RIWAYAT KUIS
 if (btnResetHistory) {
   btnResetHistory.onclick = () => {
+    triggerHaptic('tap');
     const isConfirm = confirm("Apakah kamu yakin ingin mereset seluruh catatan bintang dan nilai kuis?");
     if (isConfirm) {
       localStorage.removeItem('storybook_quiz_history');
       renderHomeShelf();
+      triggerHaptic('correct');
       alert("✨ Riwayat bintang kuis berhasil direset!");
     }
   };
 }
 
-// 10. BUKA CERITA & KEMBALI
+// 12. BUKA CERITA & KEMBALI
 function openStory(story) {
   currentStory = story;
   currentPage = 0;
   inQuizMode = false;
 
-  // Otomatis paksa layar penuh saat mulai membuka buku cerita
   enterFullScreen();
+  lockScreenOrientation();
+  triggerHaptic('tap');
 
   preloadStoryImages(story);
   preloadStoryAudios(story);
@@ -423,12 +491,13 @@ function openStory(story) {
 
   getAudioContext();
   updateAutoPlayUI();
+  updateHapticUI();
 
-  // Buka halaman 1 (audio hanya otomatis putar jika isAutoPlay = true)
   renderStoryPageContent(currentPage, isAutoPlay);
 }
 
 function returnToHome() {
+  triggerHaptic('tap');
   audioElement.pause();
   btnPageAudio.classList.remove('playing');
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -442,7 +511,7 @@ function returnToHome() {
 if (btnBackHome) btnBackHome.onclick = returnToHome;
 if (btnFinishToHome) btnFinishToHome.onclick = returnToHome;
 
-// 11. RENDER ISI HALAMAN BUKU
+// 13. RENDER KONTEN BUKU
 function renderStoryPageContent(index, autoPlayAudio = false) {
   if (!currentStory || !currentStory.pages || !currentStory.pages[index]) return;
   const pageData = currentStory.pages[index];
@@ -458,7 +527,6 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
     audioElement.src = pageData.audio;
     audioElement.preload = 'auto';
 
-    // Putar hanya jika sakelar isAutoPlay aktif dan diperintahkan
     if (autoPlayAudio && isAutoPlay) {
       const playPromise = audioElement.play();
       if (playPromise !== undefined) {
@@ -493,12 +561,13 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
   btnNext.textContent = isLastPage ? (hasQuiz ? 'Ikuti Kuis 🎯' : 'Selesai 🏁') : 'Balik Halaman';
 }
 
-// 12. ANIMASI BALIK HALAMAN SINKRON
+// 14. ANIMASI BALIK HALAMAN SINKRON
 function turnPage(direction) {
   if (isFlipping) return;
   isFlipping = true;
 
   playPageTurnSound();
+  triggerHaptic('tap');
 
   const outClass = (direction === 'next') ? 'flip-out-left' : 'flip-out-right';
   const inClass = (direction === 'next') ? 'flip-in-right' : 'flip-in-left';
@@ -525,9 +594,10 @@ function turnPage(direction) {
   }, 180);
 }
 
-// 13. UCAPKAN PER KATA (TTS)
+// 15. SUARA KATA (TTS)
 function speakWord(word, element) {
   if (!('speechSynthesis' in window)) return;
+  triggerHaptic('tap');
 
   audioElement.pause();
   btnPageAudio.classList.remove('playing');
@@ -545,8 +615,9 @@ function speakWord(word, element) {
   window.speechSynthesis.speak(utterance);
 }
 
-// 14. TOMBOL SPEAKER MANUAL
+// 16. TOMBOL SPEAKER MANUAL
 btnPageAudio.onclick = () => {
+  triggerHaptic('tap');
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
   if (audioElement.paused) {
@@ -563,7 +634,7 @@ audioElement.onended = () => {
   btnPageAudio.classList.remove('playing');
 };
 
-// 15. GESTURE SWIPE TOUCH
+// 17. GESTURE SWIPE TOUCH
 let touchStartX = 0;
 let touchStartY = 0;
 
@@ -594,6 +665,7 @@ function handleNextAction() {
     if (currentStory.quiz && currentStory.quiz.length > 0) {
       startQuiz();
     } else {
+      triggerHaptic('celebrate');
       alert("🎉 Selamat! Kamu telah membaca seluruh cerita!");
       returnToHome();
     }
@@ -605,13 +677,14 @@ btnPrev.onclick = () => {
   if (currentPage > 0) turnPage('prev');
 };
 
-// 16. KUIS PEMAHAMAN
+// 18. KUIS PEMAHAMAN
 function startQuiz() {
   inQuizMode = true;
   currentQuizIndex = 0;
   quizScore = 0;
   correctCount = 0;
 
+  triggerHaptic('tap');
   audioElement.pause();
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
@@ -647,11 +720,13 @@ function checkQuizAnswer(selectedIdx, correctIdx, btnElement) {
 
   if (selectedIdx === correctIdx) {
     playCorrectSound();
+    triggerHaptic('correct');
     btnElement.classList.add('correct');
     quizScore += pointsPerQuestion;
     correctCount++;
   } else {
     playWrongSound();
+    triggerHaptic('wrong');
     btnElement.classList.add('wrong');
     allOptButtons[correctIdx].classList.add('correct');
   }
@@ -674,7 +749,6 @@ function showQuizResult() {
   const totalQuestions = currentStory.quiz.length;
 
   playFanfareSound();
-
   resultScore.textContent = `${finalScore} Poin`;
 
   let stars = "⭐";
@@ -684,9 +758,13 @@ function showQuizResult() {
     stars = "⭐⭐⭐";
     message = "Luar biasa! Kamu menyimak seluruh cerita dan pesan moral dengan sempurna!";
     launchConfetti();
+    triggerHaptic('celebrate');
   } else if (finalScore >= 60) {
     stars = "⭐⭐";
     message = "Bagus sekali! Sebagian besar pertanyaan berhasil kamu jawab dengan benar.";
+    triggerHaptic('correct');
+  } else {
+    triggerHaptic('wrong');
   }
 
   starsBox.textContent = stars;
@@ -715,6 +793,7 @@ function showQuizResult() {
 
 if (btnRestartStory) {
   btnRestartStory.onclick = () => {
+    triggerHaptic('tap');
     inQuizMode = false;
     currentPage = 0;
     quizView.style.display = 'none';
@@ -724,7 +803,7 @@ if (btnRestartStory) {
   };
 }
 
-// 17. MODE MALAM
+// 19. MODE MALAM
 function applyTheme(isDark) {
   document.body.classList.toggle('dark-mode', isDark);
   if (btnThemeToggleHome) btnThemeToggleHome.textContent = isDark ? '☀️' : '🌙';
@@ -733,6 +812,7 @@ function applyTheme(isDark) {
 }
 
 function toggleTheme() {
+  triggerHaptic('tap');
   const isDark = !document.body.classList.contains('dark-mode');
   applyTheme(isDark);
 }
@@ -744,7 +824,7 @@ if (localStorage.getItem('storybook_theme') === 'dark') {
   applyTheme(true);
 }
 
-// 18. PENANGANAN INSTALASI APLIKASI PWA (MOBILE PROMPT)
+// 20. PENANGANAN PROMPT INSTALASI PWA
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
@@ -755,6 +835,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 if (btnInstallPwa) {
   btnInstallPwa.onclick = async () => {
+    triggerHaptic('tap');
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
@@ -767,6 +848,7 @@ if (btnInstallPwa) {
 
 if (btnCloseInstallBanner) {
   btnCloseInstallBanner.onclick = () => {
+    triggerHaptic('tap');
     pwaInstallBanner.style.display = 'none';
   };
 }
@@ -776,8 +858,9 @@ window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
 });
 
-// 19. INISIALISASI
+// 21. INISIALISASI
 window.addEventListener('DOMContentLoaded', () => {
   renderHomeShelf();
   updateAutoPlayUI();
+  updateHapticUI();
 });
