@@ -21,26 +21,9 @@
   <!-- Canvas Overlay Konfeti -->
   <canvas id="confettiCanvas"></canvas>
 
-  <!-- ================= MODAL PETUNJUK INSTALASI ================= -->
-  <div id="installGuideModal" class="install-modal-overlay" style="display: none;">
-    <div class="install-modal-box">
-      <div class="install-modal-header">
-        <span class="modal-icon">📲</span>
-        <h3>Pasang Aplikasi ke Layar HP</h3>
-        <button id="btnCloseModal" class="btn-close-modal">✕</button>
-      </div>
-      <div class="install-modal-body" id="installGuideContent">
-        <!-- Diisi petunjuk otomatis sesuai perangkat oleh app.js -->
-      </div>
-      <div class="install-modal-footer">
-        <button id="btnModalUnderstood" class="btn-action btn-action-next">Saya Mengerti 👍</button>
-      </div>
-    </div>
-  </div>
-
   <div class="app-container">
 
-    <!-- ================= BANNER INSTALASI PWA ================= -->
+    <!-- Banner Instalasi PWA Otomatis (Hanya muncul saat siap pasang) -->
     <div id="pwaInstallBanner" class="pwa-install-banner" style="display: none;">
       <div class="pwa-banner-content">
         <span class="pwa-icon">📲</span>
@@ -55,13 +38,12 @@
       </div>
     </div>
 
-    <!-- ================= 1. HALAMAN BERANDA (RAK BUKU) ================= -->
+    <!-- ================= 1. HALAMAN BERANDA ================= -->
     <div id="homeView" class="view-screen">
       <div class="home-header">
         <div class="header-title">
           <div class="title-row">
             <h1>📖 Perpustakaan Cerita</h1>
-            <!-- Indikator Jaringan Real-Time Online / Offline -->
             <div class="network-badge online" id="networkStatus">
               <span class="status-dot"></span>
               <span class="status-text">Online</span>
@@ -70,8 +52,8 @@
           <p>Pilih buku cerita bergambar yang ingin kamu baca:</p>
         </div>
         <div class="header-tools">
-          <!-- Tombol Instal Aplikasi (Dipaksa Tampil Jika Belum Terinstal) -->
-          <button class="btn-tool btn-install-tool" id="btnInstallApp" title="Instal Aplikasi ke Perangkat" style="display: none;">📥</button>
+          <!-- Tombol Instal Langsung -->
+          <button class="btn-tool btn-install-tool" id="btnInstallApp" title="Instal Aplikasi Langsung" style="display: none;">📥</button>
           <button class="btn-tool" id="btnHapticToggleHome" title="Efek Getar (On/Off)">📳</button>
           <button class="btn-tool" id="btnResetHistory" title="Reset Riwayat Bintang & Nilai">🗑️</button>
           <button class="btn-tool" id="btnFullScreenHome" title="Layar Penuh (Full Screen)">⛶</button>
@@ -88,8 +70,7 @@
       <!-- Top Navigation Bar -->
       <div class="top-bar">
         <button class="btn-tool" id="btnBackHome" title="Kembali ke Beranda">🏠</button>
-        <!-- Tombol Instal Cadangan di Reader -->
-        <button class="btn-tool btn-install-tool" id="btnInstallReader" title="Instal Aplikasi ke Perangkat" style="display: none;">📥</button>
+        <button class="btn-tool btn-install-tool" id="btnInstallReader" title="Instal Aplikasi Langsung" style="display: none;">📥</button>
         <button class="btn-tool" id="btnAutoPlayToggle" title="Narasi Otomatis (On/Off)">📢</button>
         <button class="btn-tool" id="btnHapticToggleReader" title="Efek Getar (On/Off)">📳</button>
         <button class="btn-tool" id="btnFullScreenReader" title="Layar Penuh (Full Screen)">⛶</button>
@@ -149,11 +130,11 @@
 
   <audio id="audioElement"></audio>
 
-  <!-- ================= DAFTAR BUKU CERITA MODULAR ================= -->
+  <!-- Daftar Cerita Modular -->
   <script src="js/stories/arka.js"></script>
   <script src="js/stories/aisyah.js"></script>
 
-  <!-- ================= MESIN APLIKASI UTAMA ================= -->
+  <!-- Mesin Aplikasi Utama -->
   <script src="js/app.js"></script>
 
   <!-- Registrasi Service Worker PWA -->
