@@ -4,8 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Perpustakaan Buku Cerita Interaktif</title>
+  
+  <!-- Konfigurasi PWA & Layar Utama -->
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#58cc02">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Storybook">
+  <link rel="apple-touch-icon" href="./images/icon-192.png">
+
+  <!-- Berkas Gaya Tampilan & Animasi 3D -->
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -16,14 +24,14 @@
     <div id="homeView" class="view-screen">
       <div class="home-header">
         <div class="header-title">
-          <h1>📖 Rak Cerita Arka</h1>
+          <h1>📖 Perpustakaan Cerita</h1>
           <p>Pilih buku cerita bergambar yang ingin kamu baca:</p>
         </div>
         <button class="btn-tool" id="btnThemeToggleHome" title="Ganti Mode Malam">🌙</button>
       </div>
 
       <div class="stories-grid" id="storiesGrid">
-        <!-- Kartu cerita di-render secara otomatis dari stories.js -->
+        <!-- Kartu cerita di-render secara otomatis oleh app.js -->
       </div>
     </div>
 
@@ -40,7 +48,7 @@
         <div class="page-indicator" id="pageIndicator">1/20</div>
       </div>
 
-      <!-- 3D Book Stage -->
+      <!-- 3D Book Stage (Mendukung Touch Swipe) -->
       <div class="book-stage" id="bookStage">
         <div class="page-sheet" id="pageSheet">
           <div class="image-frame">
@@ -87,10 +95,25 @@
 
   </div>
 
+  <!-- Audio Player Utama -->
   <audio id="audioElement"></audio>
 
-  <!-- Panggil file arka.js, BUKAN stories.js -->
-<script src="js/stories/arka.js"></script>
-<script src="js/app.js"></script>
+  <!-- ================= DAFTAR CERITA ================= -->
+  <!-- Tambahkan script cerita baru di atas app.js -->
+  <script src="js/stories/arka.js"></script>
+
+  <!-- ================= MESIN UTAMA ================= -->
+  <script src="js/app.js"></script>
+
+  <!-- Pendaftaran PWA Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('Service Worker aktif:', reg.scope))
+          .catch(err => console.log('Service Worker gagal:', err));
+      });
+    }
+  </script>
 </body>
 </html>
