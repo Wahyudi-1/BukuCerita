@@ -63,9 +63,17 @@ const confettiCanvas = document.getElementById('confettiCanvas');
 // Elemen Indikator Jaringan & PWA
 const networkStatus = document.getElementById('networkStatus');
 const btnInstallApp = document.getElementById('btnInstallApp');
+const btnInstallReader = document.getElementById('btnInstallReader');
 const pwaInstallBanner = document.getElementById('pwaInstallBanner');
 const btnInstallPwa = document.getElementById('btnInstallPwa');
 const btnCloseInstallBanner = document.getElementById('btnCloseInstallBanner');
+
+// Elemen Modal Panduan PWA
+const installGuideModal = document.getElementById('installGuideModal');
+const installGuideContent = document.getElementById('installGuideContent');
+const btnCloseModal = document.getElementById('btnCloseModal');
+const btnModalUnderstood = document.getElementById('btnModalUnderstood');
+
 let deferredPrompt = null;
 
 // 3. MODUL HAPTIC FEEDBACK (GETARAN VIBRATION API)
@@ -112,7 +120,7 @@ function toggleHaptic() {
 if (btnHapticToggleHome) btnHapticToggleHome.onclick = toggleHaptic;
 if (btnHapticToggleReader) btnHapticToggleReader.onclick = toggleHaptic;
 
-// 4. KUNCI ORIENTASI CERDAS (PORTRAIT DI HP & LANDSCAPE DI TABLET)
+// 4. KUNCI ORIENTASI CERDAS
 async function lockScreenOrientation() {
   try {
     if (screen.orientation && screen.orientation.lock) {
@@ -848,38 +856,102 @@ window.addEventListener('offline', () => {
   triggerHaptic('wrong');
 });
 
-// 21. PENANGANAN INSTALASI PWA (HEADER BUTTON & PROMPT BANNER)
-const isAppStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+// 21. SISTEM DETEKSI DAN EKSEKUSI INSTALASI PWA (CERDAS & RESPONSIF)
+function isRunningStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         window.navigator.standalone === true || 
+         document.referrer.includes('android-app://');
+}
 
+function initInstallStatus() {
+  // Jika aplikasi BELUM berjalan dalam mode standalone, paksa tombol instalasi muncul
+  if (!isRunningStandalone()) {
+    if (btnInstallApp) btnInstallApp.style.display = 'flex';
+    if (btnInstallReader) btnInstallReader.style.display = 'flex';
+    if (pwaInstallBanner) pwaInstallBanner.style.display = 'flex';
+  } else {
+    // Sembunyikan bila sudah terinstal
+    if (btnInstallApp) btnInstallApp.style.display = 'none';
+    if (btnInstallReader) btnInstallReader.style.display = 'none';
+    if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
+  }
+}
+
+// Simpan event instalasi Chrome bila tersedia
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-
-  if (!isAppStandalone) {
-    if (btnInstallApp) btnInstallApp.style.display = 'flex';
-    if (pwaInstallBanner) pwaInstallBanner.style.display = 'flex';
-  }
+  initInstallStatus();
 });
 
+// Fungsi Eksekusi Klik Tombol Instal
 async function executePwaInstall() {
   triggerHaptic('tap');
 
-  if (!deferredPrompt) {
-    alert("Untuk menginstal aplikasi:\n1. Buka menu peramban (titik tiga) atau ikon Bagikan (Share).\n2. Pilih 'Tambahkan ke Layar Utama' (Add to Home Screen).");
+  // Jika browser Chrome/Edge mendukung pemicuan prompt langsung
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      if (btnInstallApp) btnInstallApp.style.display = 'none';
+      if (btnInstallReader) btnInstallReader.style.display = 'none';
+      if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
+    }
+    deferredPrompt = null;
     return;
   }
 
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
+  // Jika tidak didukung langsung (Safari iOS, Chrome tanpa prompt, browser tablet), tampilkan modal panduan
+  showInstallGuideModal();
+}
 
-  if (outcome === 'accepted') {
-    if (btnInstallApp) btnInstallApp.style.display = 'none';
-    if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
+// Tampilkan Modal Panduan Sesuai Jenis Perangkat Pengguna
+function showInstallGuideModal() {
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+
+  if (isIOS) {
+    installGuideContent.innerHTML = `
+      <div class="guide-step">
+        <span class="step-number">1</span>
+        <div>Tekan tombol <strong>Bagikan / Share</strong> (ikon kotak dengan tanda panah ke atas) pada bilah bawah browser Safari.</div>
+      </div>
+      <div class="guide-step">
+        <span class="step-number">2</span>
+        <div>Gulir ke bawah lalu pilih opsi <strong>"Tambahkan ke Layar Utama" (Add to Home Screen)</strong>.</div>
+      </div>
+      <div class="guide-step">
+        <span class="step-number">3</span>
+        <div>Tekan <strong>Tambah (Add)</strong> di pojok kanan atas. Aplikasi siap dibaca tanpa kuota!</div>
+      </div>
+    `;
+  } else {
+    installGuideContent.innerHTML = `
+      <div class="guide-step">
+        <span class="step-number">1</span>
+        <div>Tekan ikon <strong>Titik Tiga (⋮)</strong> di pojok kanan atas browser Google Chrome.</div>
+      </div>
+      <div class="guide-step">
+        <span class="step-number">2</span>
+        <div>Pilih menu <strong>"Instal aplikasi"</strong> atau <strong>"Tambahkan ke Layar Utama"</strong>.</div>
+      </div>
+      <div class="guide-step">
+        <span class="step-number">3</span>
+        <div>Tekan <strong>Instal</strong>. Aplikasi akan muncul di beranda HP kamu layaknya aplikasi biasa!</div>
+      </div>
+    `;
   }
-  deferredPrompt = null;
+
+  if (installGuideModal) installGuideModal.style.display = 'flex';
+}
+
+function hideInstallGuideModal() {
+  triggerHaptic('tap');
+  if (installGuideModal) installGuideModal.style.display = 'none';
 }
 
 if (btnInstallApp) btnInstallApp.onclick = executePwaInstall;
+if (btnInstallReader) btnInstallReader.onclick = executePwaInstall;
 if (btnInstallPwa) btnInstallPwa.onclick = executePwaInstall;
 
 if (btnCloseInstallBanner) {
@@ -889,12 +961,17 @@ if (btnCloseInstallBanner) {
   };
 }
 
+if (btnCloseModal) btnCloseModal.onclick = hideInstallGuideModal;
+if (btnModalUnderstood) btnModalUnderstood.onclick = hideInstallGuideModal;
+
 window.addEventListener('appinstalled', () => {
   if (btnInstallApp) btnInstallApp.style.display = 'none';
+  if (btnInstallReader) btnInstallReader.style.display = 'none';
   if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
+  if (installGuideModal) installGuideModal.style.display = 'none';
   deferredPrompt = null;
   triggerHaptic('celebrate');
-  console.log("Aplikasi buku cerita berhasil diinstal!");
+  console.log("Aplikasi berhasil dipasang di perangkat!");
 });
 
 // 22. INISIALISASI
@@ -903,4 +980,5 @@ window.addEventListener('DOMContentLoaded', () => {
   updateAutoPlayUI();
   updateHapticUI();
   updateNetworkStatus();
+  initInstallStatus(); // Memastikan tombol instalasi langsung muncul
 });
