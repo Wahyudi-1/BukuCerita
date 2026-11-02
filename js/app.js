@@ -1,6 +1,7 @@
 /**
  * ================================================================
  * APP.JS - MESIN BUKU CERITA INTERAKTIF TERLENGKAP
+ * (AUDIO ENGINE, INSTANT PLAY, HAPTIC, PWA INSTALL, & NETWORK MONITOR)
  * ================================================================
  */
 
@@ -59,6 +60,9 @@ const btnHapticToggleHome = document.getElementById('btnHapticToggleHome');
 const btnHapticToggleReader = document.getElementById('btnHapticToggleReader');
 const confettiCanvas = document.getElementById('confettiCanvas');
 
+// Elemen Indikator Jaringan & PWA
+const networkStatus = document.getElementById('networkStatus');
+const btnInstallApp = document.getElementById('btnInstallApp');
 const pwaInstallBanner = document.getElementById('pwaInstallBanner');
 const btnInstallPwa = document.getElementById('btnInstallPwa');
 const btnCloseInstallBanner = document.getElementById('btnCloseInstallBanner');
@@ -112,9 +116,7 @@ if (btnHapticToggleReader) btnHapticToggleReader.onclick = toggleHaptic;
 async function lockScreenOrientation() {
   try {
     if (screen.orientation && screen.orientation.lock) {
-      // Deteksi tablet jika dimensi layar terpendek >= 600px atau lebar jendela >= 768px
       const isTablet = Math.min(window.screen.width, window.screen.height) >= 600 || window.innerWidth >= 768;
-      
       if (isTablet) {
         await screen.orientation.lock('landscape');
       } else {
@@ -824,27 +826,61 @@ if (localStorage.getItem('storybook_theme') === 'dark') {
   applyTheme(true);
 }
 
-// 20. PENANGANAN PROMPT INSTALASI PWA
+// 20. INDIKATOR JARINGAN (ONLINE / OFFLINE REAL-TIME)
+function updateNetworkStatus() {
+  if (!networkStatus) return;
+  const isOnline = navigator.onLine;
+
+  networkStatus.className = `network-badge ${isOnline ? 'online' : 'offline'}`;
+  const statusText = networkStatus.querySelector('.status-text');
+  if (statusText) {
+    statusText.textContent = isOnline ? 'Online' : 'Offline';
+  }
+}
+
+window.addEventListener('online', () => {
+  updateNetworkStatus();
+  triggerHaptic('tap');
+});
+
+window.addEventListener('offline', () => {
+  updateNetworkStatus();
+  triggerHaptic('wrong');
+});
+
+// 21. PENANGANAN INSTALASI PWA (HEADER BUTTON & PROMPT BANNER)
+const isAppStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  if (pwaInstallBanner) {
-    pwaInstallBanner.style.display = 'flex';
+
+  if (!isAppStandalone) {
+    if (btnInstallApp) btnInstallApp.style.display = 'flex';
+    if (pwaInstallBanner) pwaInstallBanner.style.display = 'flex';
   }
 });
 
-if (btnInstallPwa) {
-  btnInstallPwa.onclick = async () => {
-    triggerHaptic('tap');
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      pwaInstallBanner.style.display = 'none';
-    }
-    deferredPrompt = null;
-  };
+async function executePwaInstall() {
+  triggerHaptic('tap');
+
+  if (!deferredPrompt) {
+    alert("Untuk menginstal aplikasi:\n1. Buka menu peramban (titik tiga) atau ikon Bagikan (Share).\n2. Pilih 'Tambahkan ke Layar Utama' (Add to Home Screen).");
+    return;
+  }
+
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+
+  if (outcome === 'accepted') {
+    if (btnInstallApp) btnInstallApp.style.display = 'none';
+    if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
+  }
+  deferredPrompt = null;
 }
+
+if (btnInstallApp) btnInstallApp.onclick = executePwaInstall;
+if (btnInstallPwa) btnInstallPwa.onclick = executePwaInstall;
 
 if (btnCloseInstallBanner) {
   btnCloseInstallBanner.onclick = () => {
@@ -854,13 +890,17 @@ if (btnCloseInstallBanner) {
 }
 
 window.addEventListener('appinstalled', () => {
+  if (btnInstallApp) btnInstallApp.style.display = 'none';
   if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
   deferredPrompt = null;
+  triggerHaptic('celebrate');
+  console.log("Aplikasi buku cerita berhasil diinstal!");
 });
 
-// 21. INISIALISASI
+// 22. INISIALISASI
 window.addEventListener('DOMContentLoaded', () => {
   renderHomeShelf();
   updateAutoPlayUI();
   updateHapticUI();
+  updateNetworkStatus();
 });
