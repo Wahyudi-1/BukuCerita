@@ -21,9 +21,26 @@
   <!-- Canvas Overlay Konfeti -->
   <canvas id="confettiCanvas"></canvas>
 
+  <!-- ================= MODAL PETUNJUK INSTALASI ================= -->
+  <div id="installGuideModal" class="install-modal-overlay" style="display: none;">
+    <div class="install-modal-box">
+      <div class="install-modal-header">
+        <span class="modal-icon">📲</span>
+        <h3>Pasang Aplikasi ke Layar HP</h3>
+        <button id="btnCloseModal" class="btn-close-modal">✕</button>
+      </div>
+      <div class="install-modal-body" id="installGuideContent">
+        <!-- Diisi petunjuk otomatis sesuai perangkat oleh app.js -->
+      </div>
+      <div class="install-modal-footer">
+        <button id="btnModalUnderstood" class="btn-action btn-action-next">Saya Mengerti 👍</button>
+      </div>
+    </div>
+  </div>
+
   <div class="app-container">
 
-    <!-- ================= BANNER INSTALASI PWA (PROMPT OTOMATIS) ================= -->
+    <!-- ================= BANNER INSTALASI PWA ================= -->
     <div id="pwaInstallBanner" class="pwa-install-banner" style="display: none;">
       <div class="pwa-banner-content">
         <span class="pwa-icon">📲</span>
@@ -53,7 +70,7 @@
           <p>Pilih buku cerita bergambar yang ingin kamu baca:</p>
         </div>
         <div class="header-tools">
-          <!-- Tombol Instal Aplikasi di Header (Muncul jika belum terpasang) -->
+          <!-- Tombol Instal Aplikasi (Dipaksa Tampil Jika Belum Terinstal) -->
           <button class="btn-tool btn-install-tool" id="btnInstallApp" title="Instal Aplikasi ke Perangkat" style="display: none;">📥</button>
           <button class="btn-tool" id="btnHapticToggleHome" title="Efek Getar (On/Off)">📳</button>
           <button class="btn-tool" id="btnResetHistory" title="Reset Riwayat Bintang & Nilai">🗑️</button>
@@ -62,9 +79,7 @@
         </div>
       </div>
 
-      <div class="stories-grid" id="storiesGrid">
-        <!-- Kartu buku akan dimuat otomatis oleh app.js -->
-      </div>
+      <div class="stories-grid" id="storiesGrid"></div>
     </div>
 
     <!-- ================= 2. HALAMAN PEMBACA CERITA ================= -->
@@ -73,6 +88,8 @@
       <!-- Top Navigation Bar -->
       <div class="top-bar">
         <button class="btn-tool" id="btnBackHome" title="Kembali ke Beranda">🏠</button>
+        <!-- Tombol Instal Cadangan di Reader -->
+        <button class="btn-tool btn-install-tool" id="btnInstallReader" title="Instal Aplikasi ke Perangkat" style="display: none;">📥</button>
         <button class="btn-tool" id="btnAutoPlayToggle" title="Narasi Otomatis (On/Off)">📢</button>
         <button class="btn-tool" id="btnHapticToggleReader" title="Efek Getar (On/Off)">📳</button>
         <button class="btn-tool" id="btnFullScreenReader" title="Layar Penuh (Full Screen)">⛶</button>
@@ -83,7 +100,7 @@
         <div class="page-indicator" id="pageIndicator">1/20</div>
       </div>
 
-      <!-- 3D Book Stage (Mendukung Sentuhan Geser / Swipe) -->
+      <!-- 3D Book Stage -->
       <div class="book-stage" id="bookStage">
         <div class="page-sheet" id="pageSheet">
           <div class="image-frame">
