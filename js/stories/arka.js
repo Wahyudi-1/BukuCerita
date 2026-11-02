@@ -10,7 +10,7 @@ window.STORIES_DATABASE.push({
       {
         page: 1,
         text: "Kring! Matahari pagi menyapa ramah. Arka bangun dari kasur dan tersenyum bersyukur.",
-        image: "./images/01.webp",
+        image: "./images/arka/01.jpg",
         audio: "./audio/01.mp3"
       },
       {
