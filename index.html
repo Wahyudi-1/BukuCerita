@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Perpustakaan Buku Cerita Interaktif</title>
   
-  <!-- Konfigurasi PWA -->
+  <!-- Konfigurasi PWA & Layar Utama -->
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#58cc02">
   <meta name="mobile-web-app-capable" content="yes">
@@ -13,6 +13,7 @@
   <meta name="apple-mobile-web-app-title" content="BukuCerita">
   <link rel="apple-touch-icon" href="./images/icon-192.png">
 
+  <!-- Berkas Gaya Tampilan -->
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -22,7 +23,7 @@
 
   <div class="app-container">
 
-    <!-- Banner Instalasi PWA -->
+    <!-- ================= BANNER INSTALASI PWA (PROMPT OTOMATIS) ================= -->
     <div id="pwaInstallBanner" class="pwa-install-banner" style="display: none;">
       <div class="pwa-banner-content">
         <span class="pwa-icon">📲</span>
@@ -37,14 +38,23 @@
       </div>
     </div>
 
-    <!-- ================= 1. HALAMAN BERANDA ================= -->
+    <!-- ================= 1. HALAMAN BERANDA (RAK BUKU) ================= -->
     <div id="homeView" class="view-screen">
       <div class="home-header">
         <div class="header-title">
-          <h1>📖 Perpustakaan Cerita</h1>
+          <div class="title-row">
+            <h1>📖 Perpustakaan Cerita</h1>
+            <!-- Indikator Jaringan Real-Time Online / Offline -->
+            <div class="network-badge online" id="networkStatus">
+              <span class="status-dot"></span>
+              <span class="status-text">Online</span>
+            </div>
+          </div>
           <p>Pilih buku cerita bergambar yang ingin kamu baca:</p>
         </div>
         <div class="header-tools">
+          <!-- Tombol Instal Aplikasi di Header (Muncul jika belum terpasang) -->
+          <button class="btn-tool btn-install-tool" id="btnInstallApp" title="Instal Aplikasi ke Perangkat" style="display: none;">📥</button>
           <button class="btn-tool" id="btnHapticToggleHome" title="Efek Getar (On/Off)">📳</button>
           <button class="btn-tool" id="btnResetHistory" title="Reset Riwayat Bintang & Nilai">🗑️</button>
           <button class="btn-tool" id="btnFullScreenHome" title="Layar Penuh (Full Screen)">⛶</button>
@@ -52,7 +62,9 @@
         </div>
       </div>
 
-      <div class="stories-grid" id="storiesGrid"></div>
+      <div class="stories-grid" id="storiesGrid">
+        <!-- Kartu buku akan dimuat otomatis oleh app.js -->
+      </div>
     </div>
 
     <!-- ================= 2. HALAMAN PEMBACA CERITA ================= -->
@@ -71,7 +83,7 @@
         <div class="page-indicator" id="pageIndicator">1/20</div>
       </div>
 
-      <!-- 3D Book Stage -->
+      <!-- 3D Book Stage (Mendukung Sentuhan Geser / Swipe) -->
       <div class="book-stage" id="bookStage">
         <div class="page-sheet" id="pageSheet">
           <div class="image-frame">
@@ -120,14 +132,14 @@
 
   <audio id="audioElement"></audio>
 
-  <!-- Daftar Cerita Modular -->
+  <!-- ================= DAFTAR BUKU CERITA MODULAR ================= -->
   <script src="js/stories/arka.js"></script>
   <script src="js/stories/aisyah.js"></script>
 
-  <!-- Mesin Aplikasi -->
+  <!-- ================= MESIN APLIKASI UTAMA ================= -->
   <script src="js/app.js"></script>
 
-  <!-- Service Worker Registration -->
+  <!-- Registrasi Service Worker PWA -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
