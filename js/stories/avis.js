@@ -3,6 +3,7 @@ window.STORIES_DATABASE = window.STORIES_DATABASE || [];
 window.STORIES_DATABASE.push({
   id: "avis-belajar-memaafkan",
   title: "Avis dan Rahasia Hati yang Lapang",
+  lang: "id-ID", // Otomatis mengaktifkan pelafalan bahasa Indonesia
   category: "TK B / Fase Pondasi / Sosial Emosional",
   cover: "./images/avis-memaafkan/a01_compressed.jpg",
   description: "Kisah hangat tentang Avis yang belajar mengenali amarah, berani meminta maaf, dan indahnya saling memaafkan saat bermain bersama teman.",
