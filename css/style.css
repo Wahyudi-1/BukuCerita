@@ -3,12 +3,12 @@
   --primary-border: #46a302;
   --accent: #1cb0f6;
   --accent-border: #1899d6;
-  --bg: #eef2f5;
+  --bg: #f7f9fa;
   --paper: #ffffff;
   --text: #2c3437;
   --text-sub: #77838f;
   --border: #e2e8f0;
-  --card-shadow: rgba(0, 0, 0, 0.05);
+  --card-shadow: rgba(0, 0, 0, 0.06);
   --word-dash: #a0aec0;
   --option-bg: #f8fafc;
 }
@@ -34,7 +34,6 @@ body.dark-mode {
   padding: 0;
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.2s ease;
 }
 
 body {
@@ -45,13 +44,30 @@ body {
   min-height: 100vh;
   padding: 12px;
   user-select: none;
+  transition: background-color 0.25s ease, color 0.2s ease;
 }
 
+/* Wadah Utama Aplikasi (Responsif Desktop & Mobile) */
 .app-container {
   width: 100%;
-  max-width: 520px;
+  max-width: 540px; /* Lebar default untuk ponsel/tablet portrait */
   display: flex;
   flex-direction: column;
+}
+
+/* Optimasi Khusus Layar Komputer / Desktop */
+@media (min-width: 768px) {
+  body {
+    padding: 24px;
+    align-items: center;
+  }
+  .app-container {
+    max-width: 660px; /* Lebih lebar dan proporsional di monitor desktop */
+  }
+  .story-card-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 0 var(--border);
+  }
 }
 
 .view-screen {
@@ -61,7 +77,7 @@ body {
   gap: 14px;
 }
 
-/* ================= 1. GAYA BERANDA ================= */
+/* ================= 1. BERANDA (RAK BUKU) ================= */
 .home-header {
   display: flex;
   justify-content: space-between;
@@ -97,7 +113,7 @@ body {
   gap: 14px;
   align-items: center;
   cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .story-card-item:active {
@@ -144,7 +160,7 @@ body {
   line-height: 1.35;
 }
 
-/* ================= 2. GAYA READER ================= */
+/* ================= 2. RUANG BACA (READER) ================= */
 .top-bar {
   display: flex;
   align-items: center;
@@ -195,8 +211,9 @@ body {
   text-align: right;
 }
 
+/* Area 3D Stage */
 .book-stage {
-  perspective: 1400px;
+  perspective: 1600px;
   width: 100%;
   min-height: 490px;
   display: flex;
@@ -219,26 +236,37 @@ body {
   position: relative;
 }
 
-/* 3D Animations */
-.flipping-out-next { animation: flipOutNext 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-.flipping-in-next { animation: flipInNext 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-.flipping-out-prev { animation: flipOutPrev 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-.flipping-in-prev { animation: flipInPrev 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-
-@keyframes flipOutNext {
-  0% { transform: rotateY(0deg) scale(1); opacity: 1; }
-  100% { transform: rotateY(-80deg) scale(0.94); opacity: 0.2; }
+/* ================= ANIMASI 3D BALIK HALAMAN SINKRON ================= */
+/* Fase Keluar (0 deg -> 90 deg) */
+.flip-out-left {
+  animation: flipOutLeft 0.18s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
 }
-@keyframes flipInNext {
-  0% { transform: rotateY(80deg) scale(0.94); opacity: 0.2; }
+.flip-out-right {
+  animation: flipOutRight 0.18s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+}
+
+/* Fase Masuk (90 deg -> 0 deg) */
+.flip-in-right {
+  animation: flipInRight 0.20s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.flip-in-left {
+  animation: flipInLeft 0.20s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes flipOutLeft {
+  0% { transform: rotateY(0deg) scale(1); opacity: 1; }
+  100% { transform: rotateY(-90deg) scale(0.96); opacity: 0.3; }
+}
+@keyframes flipInRight {
+  0% { transform: rotateY(90deg) scale(0.96); opacity: 0.3; }
   100% { transform: rotateY(0deg) scale(1); opacity: 1; }
 }
-@keyframes flipOutPrev {
+@keyframes flipOutRight {
   0% { transform: rotateY(0deg) scale(1); opacity: 1; }
-  100% { transform: rotateY(80deg) scale(0.94); opacity: 0.2; }
+  100% { transform: rotateY(90deg) scale(0.96); opacity: 0.3; }
 }
-@keyframes flipInPrev {
-  0% { transform: rotateY(-80deg) scale(0.94); opacity: 0.2; }
+@keyframes flipInLeft {
+  0% { transform: rotateY(-90deg) scale(0.96); opacity: 0.3; }
   100% { transform: rotateY(0deg) scale(1); opacity: 1; }
 }
 
@@ -246,7 +274,7 @@ body {
   content: '';
   position: absolute;
   top: 0; bottom: 0; left: 0;
-  width: 12px;
+  width: 14px;
   background: linear-gradient(to right, rgba(0,0,0,0.06), transparent);
   pointer-events: none;
   z-index: 5;
@@ -254,7 +282,7 @@ body {
 
 .image-frame {
   width: 100%;
-  height: 270px;
+  height: clamp(240px, 42vh, 340px); /* Skalabilitas tinggi otomatis untuk desktop dan ponsel */
   background-color: var(--border);
   display: flex;
   align-items: center;
@@ -281,14 +309,15 @@ body {
   background: var(--accent);
   border: none;
   border-radius: 16px;
-  width: 50px;
-  height: 50px;
+  width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 4px 0 var(--accent-border);
   flex-shrink: 0;
+  transition: transform 0.1s;
 }
 
 .btn-speaker:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--accent-border); }
@@ -319,6 +348,7 @@ body {
   padding: 2px 6px;
   border-radius: 8px;
   border-bottom: 2px dashed var(--word-dash);
+  transition: all 0.12s ease;
 }
 
 .clickable-word:hover {
@@ -370,7 +400,7 @@ body {
 .btn-action-next:active:not(:disabled) { box-shadow: 0 1px 0 var(--primary-border); }
 .btn-action:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; transform: none; }
 
-/* ================= 3. GAYA KUIS ================= */
+/* ================= 3. KUIS PEMAHAMAN ================= */
 .quiz-view {
   display: flex;
   flex-direction: column;
