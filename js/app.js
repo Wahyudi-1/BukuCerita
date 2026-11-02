@@ -1,10 +1,11 @@
 /**
  * ================================================================
- * APP.JS - MESIN BUKU CERITA (AUDIO ENGINE, CONFETTI, & QUIZ HISTORY)
+ * APP.JS - MESIN LENGKAP BUKU CERITA INTERAKTIF
+ * (AUDIO ENGINE, INSTANT PLAY, PRELOAD, CONFETTI & QUIZ HISTORY)
  * ================================================================
  */
 
-// 1. STATE MANAGER
+// 1. STATE MANAGER (Penyimpan Kondisi Aplikasi)
 let currentStory = null;
 let currentPage = 0;
 let isFlipping = false;
@@ -13,6 +14,7 @@ let currentQuizIndex = 0;
 let quizScore = 0;
 let correctCount = 0;
 const preloadedImages = {};
+const preloadedAudios = {}; // Menyimpan cache audio di memori agar bebas jeda
 
 // 2. REFERENSI ELEMEN DOM
 const homeView = document.getElementById('homeView');
@@ -48,7 +50,7 @@ const btnThemeToggleHome = document.getElementById('btnThemeToggleHome');
 const btnThemeToggleReader = document.getElementById('btnThemeToggleReader');
 const confettiCanvas = document.getElementById('confettiCanvas');
 
-// 3. MESIN AUDIO SINTETIS (WEB AUDIO API)
+// 3. MESIN AUDIO SINTETIS (WEB AUDIO API - 100% OFFLINE)
 let audioCtx = null;
 
 function getAudioContext() {
@@ -62,9 +64,11 @@ function getAudioContext() {
   return audioCtx;
 }
 
+// Buka kunci AudioContext saat interaksi layar pertama
 window.addEventListener('click', () => getAudioContext(), { once: true });
 window.addEventListener('touchstart', () => getAudioContext(), { once: true });
 
+// A. Suara Desir Kertas (Page Turn)
 function playPageTurnSound() {
   const ctx = getAudioContext();
   if (!ctx) return;
@@ -95,12 +99,13 @@ function playPageTurnSound() {
   noise.start();
 }
 
+// B. Suara Jawaban Benar (Melodi Akor Naik Ceria)
 function playCorrectSound() {
   const ctx = getAudioContext();
   if (!ctx) return;
 
   const now = ctx.currentTime;
-  const notes = [523.25, 659.25, 783.99];
+  const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
 
   notes.forEach((freq, idx) => {
     const osc = ctx.createOscillator();
@@ -120,6 +125,7 @@ function playCorrectSound() {
   });
 }
 
+// C. Suara Jawaban Salah (Nada Rendah Menurun)
 function playWrongSound() {
   const ctx = getAudioContext();
   if (!ctx) return;
@@ -142,11 +148,12 @@ function playWrongSound() {
   osc.stop(now + 0.3);
 }
 
+// D. Suara Fanfare Selesai Kuis
 function playFanfareSound() {
   const ctx = getAudioContext();
   if (!ctx) return;
 
-  const notes = [523.25, 659.25, 783.99, 1046.50];
+  const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
   const now = ctx.currentTime;
 
   notes.forEach((freq, idx) => {
@@ -205,8 +212,8 @@ function launchConfetti() {
     particles.forEach(p => {
       p.x += p.vx;
       p.y += p.vy;
-      p.vy += 0.38; // Gravitasi
-      p.vx *= 0.98; // Gesekan udara
+      p.vy += 0.38;
+      p.vx *= 0.98;
       p.angle += p.spin;
 
       if (Date.now() - startTime > 2400) {
@@ -237,7 +244,7 @@ function launchConfetti() {
   renderConfetti();
 }
 
-// 5. PRELOAD GAMBAR KE MEMORI
+// 5. SISTEM PRELOADING (GAMBAR & AUDIO KE MEMORI RAM)
 function preloadStoryImages(story) {
   if (!story || !story.pages) return;
   story.pages.forEach(p => {
@@ -245,6 +252,18 @@ function preloadStoryImages(story) {
       const img = new Image();
       img.src = p.image;
       preloadedImages[p.image] = img;
+    }
+  });
+}
+
+function preloadStoryAudios(story) {
+  if (!story || !story.pages) return;
+  story.pages.forEach(p => {
+    if (p.audio && !preloadedAudios[p.audio]) {
+      const audioObj = new Audio();
+      audioObj.preload = 'auto'; // Paksa buffer audio ke memori
+      audioObj.src = p.audio;
+      preloadedAudios[p.audio] = audioObj;
     }
   });
 }
@@ -264,7 +283,6 @@ function renderHomeShelf() {
     return;
   }
 
-  // Ambil riwayat kuis dari LocalStorage
   const quizHistory = JSON.parse(localStorage.getItem('storybook_quiz_history') || '{}');
 
   storiesGrid.innerHTML = '';
@@ -272,7 +290,6 @@ function renderHomeShelf() {
     const card = document.createElement('div');
     card.className = 'story-card-item';
 
-    // Periksa apakah cerita ini memiliki catatan nilai sebelumnya
     const record = quizHistory[story.id];
     let recordBadge = '';
     if (record) {
@@ -312,13 +329,15 @@ const storyPoller = setInterval(() => {
   }
 }, 150);
 
-// 7. BUKA CERITA & KEMBALI
+// 7. BUKA CERITA & KEMBALI KE BERANDA
 function openStory(story) {
   currentStory = story;
   currentPage = 0;
   inQuizMode = false;
 
+  // Lakukan preloading gambar & semua file audio secara bersamaan
   preloadStoryImages(story);
+  preloadStoryAudios(story);
 
   homeView.style.display = 'none';
   readerView.style.display = 'flex';
@@ -326,6 +345,9 @@ function openStory(story) {
   navControls.style.display = 'flex';
   quizView.style.display = 'none';
 
+  getAudioContext();
+
+  // Buka halaman 1 dan putar narasi secara instan
   renderStoryPageContent(currentPage, true);
 }
 
@@ -337,30 +359,46 @@ function returnToHome() {
   readerView.style.display = 'none';
   homeView.style.display = 'flex';
   currentStory = null;
-  renderHomeShelf(); // Segarkan tampilan beranda untuk menampilkan skor terbaru
+  renderHomeShelf();
 }
 
 if (btnBackHome) btnBackHome.onclick = returnToHome;
 if (btnFinishToHome) btnFinishToHome.onclick = returnToHome;
 
-// 8. RENDER HALAMAN BUKU
+// 8. RENDER HALAMAN BUKU (DENGAN EKSEKUSI AUDIO LANGSUNG)
 function renderStoryPageContent(index, autoPlayAudio = false) {
   if (!currentStory || !currentStory.pages || !currentStory.pages[index]) return;
   const pageData = currentStory.pages[index];
 
+  // Hentikan suara yang sedang berbunyi sebelumnya
   audioElement.pause();
+  audioElement.currentTime = 0;
   btnPageAudio.classList.remove('playing');
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
+  // Pasang gambar
   storyImage.src = pageData.image;
-  audioElement.src = pageData.audio || '';
 
-  if (autoPlayAudio && pageData.audio) {
-    audioElement.play().then(() => {
-      btnPageAudio.classList.add('playing');
-    }).catch(() => {});
+  // Pasang & putar audio langsung
+  if (pageData.audio) {
+    audioElement.src = pageData.audio;
+    audioElement.preload = 'auto';
+
+    if (autoPlayAudio) {
+      const playPromise = audioElement.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          btnPageAudio.classList.add('playing');
+        }).catch(err => {
+          console.warn("Autoplay ditahan oleh peramban atau audio sedang diunduh:", err);
+        });
+      }
+    }
+  } else {
+    audioElement.removeAttribute('src');
   }
 
+  // Render kata interaktif
   textFlow.innerHTML = '';
   const words = (pageData.text || '').split(' ');
   words.forEach(word => {
@@ -383,7 +421,7 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
   btnNext.textContent = isLastPage ? (hasQuiz ? 'Ikuti Kuis 🎯' : 'Selesai 🏁') : 'Balik Halaman';
 }
 
-// 9. ANIMASI BALIK HALAMAN SINKRON
+// 9. ANIMASI BALIK HALAMAN SINKRON DENGAN AUDIO
 function turnPage(direction) {
   if (isFlipping) return;
   isFlipping = true;
@@ -396,6 +434,7 @@ function turnPage(direction) {
   pageSheet.classList.remove('flip-in-right', 'flip-in-left');
   pageSheet.classList.add(outClass);
 
+  // Pada rotasi tegak lurus (180ms), muat konten & langsung putar audio baru
   setTimeout(() => {
     if (direction === 'next') {
       currentPage++;
@@ -415,7 +454,7 @@ function turnPage(direction) {
   }, 180);
 }
 
-// 10. UCAPKAN PER KATA
+// 10. UCAPKAN PER KATA (TTS)
 function speakWord(word, element) {
   if (!('speechSynthesis' in window)) return;
 
@@ -435,7 +474,7 @@ function speakWord(word, element) {
   window.speechSynthesis.speak(utterance);
 }
 
-// 11. AUDIO NARASI
+// 11. AUDIO NARASI TOMBOL SPEAKER
 btnPageAudio.onclick = () => {
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
@@ -453,7 +492,7 @@ audioElement.onended = () => {
   btnPageAudio.classList.remove('playing');
 };
 
-// 12. GESTURE SWIPE
+// 12. GESTURE SWIPE TOUCH
 let touchStartX = 0;
 let touchStartY = 0;
 
@@ -573,10 +612,10 @@ function showQuizResult() {
   if (finalScore >= 90) {
     stars = "⭐⭐⭐";
     message = "Luar biasa! Kamu menyimak seluruh cerita dan pesan moral dengan sempurna!";
-    launchConfetti(); // Picu animasi taburan konfeti untuk 3 bintang
+    launchConfetti(); // Taburan konfeti 3 bintang
   } else if (finalScore >= 60) {
     stars = "⭐⭐";
-    message = "Bagus sekali! Hampir seluruh pertanyaan berhasil kamu jawab dengan benar.";
+    message = "Bagus sekali! Sebagian besar pertanyaan berhasil kamu jawab dengan benar.";
   }
 
   starsBox.textContent = stars;
@@ -587,7 +626,7 @@ function showQuizResult() {
     </span>
   `;
 
-  // Simpan riwayat nilai tertinggi ke LocalStorage
+  // Simpan nilai tertinggi ke LocalStorage
   const historyKey = 'storybook_quiz_history';
   const quizHistory = JSON.parse(localStorage.getItem(historyKey) || '{}');
   const previousRecord = quizHistory[currentStory.id];
