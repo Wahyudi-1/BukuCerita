@@ -1,10 +1,158 @@
-//const ASSETS_TO_CACHE = [
-  //'./',
-  //'./index.html',
-  //'./css/style.css',
-  //'./js/app.js',
-  // Daftarkan file cerita di sini:
-  //'./js/stories/arka.js',
-  //'./js/stories/kancil.js',
-  // Aset gambar & audio...
-//];
+/**
+ * ================================================================
+ * SERVICE WORKER: BUKU CERITA INTERAKTIF (PWA OFFLINE ENGINE)
+ * Versi Cache: v3.0 (Ubah nomor versi jika ada perombakan besar)
+ * ================================================================
+ */
+
+const CACHE_NAME = 'buku-cerita-v3.0';
+
+// Aset Inti Kerangka Aplikasi (App Shell)
+const CORE_ASSETS = [
+  './',
+  './index.html',
+  './css/style.css',
+  './manifest.json',
+  './js/app.js',
+  './js/stories/arka.js',
+  './js/stories/aisyah.js',
+  './images/icon-192.png',
+  './images/icon-512.png'
+];
+
+// 1. TAHAP INSTALASI: Menyimpan berkas dasar ke cache
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('[SW] Melakukan pra-caching berkas App Shell...');
+      return cache.addAll(CORE_ASSETS).catch((err) => {
+        console.warn('[SW] Beberapa file gagal di-precache (tetap melanjutkan):', err);
+      });
+    }).then(() => self.skipWaiting())
+  );
+});
+
+// 2. TAHAP AKTIVASI: Membersihkan cache versi lama secara otomatis
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            console.log('[SW] Menghapus cache usang:', cache);
+            return caches.delete(cache);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
+});
+
+// 3. TAHAP PENGAMBILAN DATA (FETCH INTERCEPTION)
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+
+  // Hanya proses permintaan bertipe GET dengan protokol http/https
+  if (request.method !== 'GET' || !request.url.startsWith('http')) return;
+
+  const url = new URL(request.url);
+
+  // A. PENANGANAN AUDIO DENGAN RANGE REQUEST (HTTP 206)
+  // Mencegah audio MP3 macet di peramban mobile (iOS/Android)
+  if (request.headers.get('range')) {
+    event.respondWith(handleRangeRequest(request));
+    return;
+  }
+
+  // B. STRATEGI NETWORK-FIRST (Untuk HTML, CSS, dan Berkas Cerita JS)
+  // Menjamin jika ada update naskah di GitHub, browser langsung memuat versi terbaru saat online
+  const isCodeAsset = url.pathname.endsWith('.html') || 
+                      url.pathname.endsWith('.js') || 
+                      url.pathname.endsWith('.css') || 
+                      url.pathname === '/' || 
+                      url.pathname.endsWith('/');
+
+  if (isCodeAsset) {
+    event.respondWith(
+      fetch(request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(request).then((cached) => cached || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // C. STRATEGI CACHE-FIRST (Untuk Media: Gambar JPG/WebP/PNG & Audio MP3)
+  // Menghemat kuota, mempercepat loading, dan bekerja 100% luring
+  event.respondWith(
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      return fetch(request).then((networkResponse) => {
+        if (!networkResponse || networkResponse.status !== 200) {
+          return networkResponse;
+        }
+
+        const responseClone = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
+        return networkResponse;
+      }).catch((err) => {
+        console.warn('[SW] Gagal memuat aset media secara offline:', request.url);
+      });
+    })
+  );
+});
+
+// 4. HELPER: PENANGAN AUDIO RANGE REQUEST (BYTE-RANGE 206)
+async function handleRangeRequest(request) {
+  const cache = await caches.open(CACHE_NAME);
+  let cachedResponse = await cache.match(request.url);
+
+  // Jika belum ada di cache, unduh dari internet dan simpan versi penuhnya
+  if (!cachedResponse) {
+    try {
+      const netRes = await fetch(request.url);
+      if (netRes.status === 200) {
+        await cache.put(request.url, netRes.clone());
+        cachedResponse = netRes;
+      } else {
+        return fetch(request);
+      }
+    } catch (e) {
+      return new Response('Audio offline tidak ditemukan', { status: 404 });
+    }
+  }
+
+  const arrayBuffer = await cachedResponse.arrayBuffer();
+  const rangeHeader = request.headers.get('range');
+  const bytesMatch = rangeHeader ? rangeHeader.match(/bytes=(\d+)-(\d+)?/) : null;
+
+  if (bytesMatch) {
+    const totalLength = arrayBuffer.byteLength;
+    const start = parseInt(bytesMatch[1], 10);
+    const end = bytesMatch[2] ? parseInt(bytesMatch[2], 10) : totalLength - 1;
+
+    // Potong buffer sesuai byte yang diminta peramban
+    const slicedBuffer = arrayBuffer.slice(start, end + 1);
+
+    return new Response(slicedBuffer, {
+      status: 206,
+      statusText: 'Partial Content',
+      headers: [
+        ['Content-Type', cachedResponse.headers.get('Content-Type') || 'audio/mpeg'],
+        ['Content-Range', `bytes ${start}-${end}/${totalLength}`],
+        ['Content-Length', slicedBuffer.byteLength.toString()],
+        ['Accept-Ranges', 'bytes']
+      ]
+    });
+  }
+
+  return cachedResponse;
+}
