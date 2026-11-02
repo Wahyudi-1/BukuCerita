@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generator Ikon PWA Buku Cerita</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 15px;
+      color: #1e293b;
+    }
+    .card {
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      max-width: 460px;
+      width: 100%;
+      text-align: center;
+    }
+    canvas {
+      border-radius: 24px;
+      box-shadow: 0 6px 16px rgba(88, 204, 2, 0.35);
+      margin: 18px 0;
+      max-width: 200px;
+      height: auto;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    button {
+      flex: 1;
+      background: #58cc02;
+      color: white;
+      border: none;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #46a302;
+    }
+    button:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #46a302;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>🎨 Generator Ikon PWA</h2>
+    <p style="font-size: 0.9rem; color: #64748b; margin-top: 4px;">Pratinjau ikon aplikasi buku cerita (Format Maskable & Any):</p>
+    
+    <canvas id="iconCanvas" width="512" height="512"></canvas>
+
+    <div class="btn-group">
+      <button onclick="downloadIcon(192, 'icon-192.png')">Unduh icon-192.png</button>
+      <button onclick="downloadIcon(512, 'icon-512.png')">Unduh icon-512.png</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('iconCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function drawIcon() {
+      // 1. Latar Belakang Gradien Ceria
+      const gradient = ctx.createLinearGradient(0, 0, 512, 512);
+      gradient.addColorStop(0, '#58cc02');
+      gradient.addColorStop(1, '#22c55e');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 512, 512);
+
+      // 2. Lingkaran Aksen Terang
+      ctx.beginPath();
+      ctx.arc(256, 256, 185, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+
+      // 3. Gambar Ilustrasi Buku Terbuka
+      // Sayap buku kiri
+      ctx.beginPath();
+      ctx.moveTo(256, 175);
+      ctx.quadraticCurveTo(175, 155, 120, 180);
+      ctx.lineTo(120, 325);
+      ctx.quadraticCurveTo(175, 305, 256, 325);
+      ctx.closePath();
+      ctx.fillStyle = '#1cb0f6';
+      ctx.fill();
+
+      // Sayap buku kanan
+      ctx.beginPath();
+      ctx.moveTo(256, 175);
+      ctx.quadraticCurveTo(337, 155, 392, 180);
+      ctx.lineTo(392, 325);
+      ctx.quadraticCurveTo(337, 305, 256, 325);
+      ctx.closePath();
+      ctx.fillStyle = '#38bdf8';
+      ctx.fill();
+
+      // Garis Lipatan Tengah Buku
+      ctx.beginPath();
+      ctx.moveTo(256, 175);
+      ctx.lineTo(256, 335);
+      ctx.lineWidth = 10;
+      ctx.strokeStyle = '#0284c7';
+      ctx.stroke();
+
+      // Pita Pembatas Buku Kuning Emas
+      ctx.beginPath();
+      ctx.moveTo(256, 175);
+      ctx.lineTo(256, 290);
+      ctx.lineTo(245, 275);
+      ctx.lineTo(256, 260);
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = '#facc15';
+      ctx.stroke();
+
+      // Gambar Bintang Emas di Atas Buku
+      ctx.font = '72px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('⭐', 256, 140);
+    }
+
+    function downloadIcon(size, fileName) {
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width = size;
+      exportCanvas.height = size;
+      const exportCtx = exportCanvas.getContext('2d');
+      exportCtx.drawImage(canvas, 0, 0, size, size);
+
+      const link = document.createElement('a');
+      link.download = fileName;
+      link.href = exportCanvas.toDataURL('image/png');
+      link.click();
+    }
+
+    drawIcon();
+  </script>
+</body>
+</html>
