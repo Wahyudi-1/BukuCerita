@@ -16,7 +16,6 @@ let correctCount = 0;
 const preloadedImages = {};
 const preloadedAudios = {};
 
-// Status preferensi pengguna
 let isAutoPlay = localStorage.getItem('storybook_autoplay') !== 'false';
 let isHapticEnabled = localStorage.getItem('storybook_haptic') !== 'false';
 
@@ -71,29 +70,18 @@ const btnCloseInstallBanner = document.getElementById('btnCloseInstallBanner');
 // 3. MODUL HAPTIC FEEDBACK (GETARAN VIBRATION API)
 function triggerHaptic(type) {
   if (!isHapticEnabled || !('vibrate' in navigator)) return;
-
   switch (type) {
-    case 'tap':
-      navigator.vibrate(15);
-      break;
-    case 'correct':
-      navigator.vibrate([35, 40, 45]);
-      break;
-    case 'wrong':
-      navigator.vibrate([70, 50, 90]);
-      break;
-    case 'celebrate':
-      navigator.vibrate([40, 40, 40, 40, 80, 50, 120]);
-      break;
-    default:
-      navigator.vibrate(20);
+    case 'tap': navigator.vibrate(15); break;
+    case 'correct': navigator.vibrate([35, 40, 45]); break;
+    case 'wrong': navigator.vibrate([70, 50, 90]); break;
+    case 'celebrate': navigator.vibrate([40, 40, 40, 40, 80, 50, 120]); break;
+    default: navigator.vibrate(20);
   }
 }
 
 function updateHapticUI() {
   const icon = isHapticEnabled ? '📳' : '📴';
   const title = isHapticEnabled ? 'Efek Getar: AKTIF (Klik untuk mematikan)' : 'Efek Getar: NONAKTIF (Klik untuk mengaktifkan)';
-  
   [btnHapticToggleHome, btnHapticToggleReader].forEach(btn => {
     if (!btn) return;
     btn.textContent = icon;
@@ -124,7 +112,7 @@ async function lockScreenOrientation() {
       }
     }
   } catch (err) {
-    console.warn("Kunci orientasi belum didukung oleh browser ini:", err);
+    console.warn("Kunci orientasi belum didukung oleh browser ini.");
   }
 }
 
@@ -148,103 +136,70 @@ window.addEventListener('touchstart', () => getAudioContext(), { once: true });
 function playPageTurnSound() {
   const ctx = getAudioContext();
   if (!ctx) return;
-
   const bufferSize = ctx.sampleRate * 0.12;
   const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
   const data = buffer.getChannelData(0);
-
   for (let i = 0; i < bufferSize; i++) {
     data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
   }
-
   const noise = ctx.createBufferSource();
   noise.buffer = buffer;
-
   const filter = ctx.createBiquadFilter();
-  filter.type = 'bandpass';
-  filter.frequency.value = 1400;
-  filter.Q.value = 1.2;
-
+  filter.type = 'bandpass'; filter.frequency.value = 1400; filter.Q.value = 1.2;
   const gain = ctx.createGain();
   gain.gain.setValueAtTime(0.4, ctx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
-
-  noise.connect(filter);
-  filter.connect(gain);
-  gain.connect(ctx.destination);
+  noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
   noise.start();
 }
 
 function playCorrectSound() {
   const ctx = getAudioContext();
   if (!ctx) return;
-
   const now = ctx.currentTime;
   const notes = [523.25, 659.25, 783.99];
-
   notes.forEach((freq, idx) => {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-
     osc.type = 'sine';
     osc.frequency.setValueAtTime(freq, now + idx * 0.08);
-
     gain.gain.setValueAtTime(0.28, now + idx * 0.08);
     gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.35);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start(now + idx * 0.08);
-    osc.stop(now + idx * 0.08 + 0.36);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(now + idx * 0.08); osc.stop(now + idx * 0.08 + 0.36);
   });
 }
 
 function playWrongSound() {
   const ctx = getAudioContext();
   if (!ctx) return;
-
   const now = ctx.currentTime;
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
-
   osc.type = 'sawtooth';
   osc.frequency.setValueAtTime(170, now);
   osc.frequency.linearRampToValueAtTime(95, now + 0.28);
-
   gain.gain.setValueAtTime(0.25, now);
   gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
-
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-
-  osc.start(now);
-  osc.stop(now + 0.3);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(now); osc.stop(now + 0.3);
 }
 
 function playFanfareSound() {
   const ctx = getAudioContext();
   if (!ctx) return;
-
   const notes = [523.25, 659.25, 783.99, 1046.50];
   const now = ctx.currentTime;
-
   notes.forEach((freq, idx) => {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-
     osc.type = 'triangle';
     osc.frequency.setValueAtTime(freq, now + idx * 0.12);
-
     gain.gain.setValueAtTime(0.3, now + idx * 0.12);
     const duration = (idx === notes.length - 1) ? 0.6 : 0.25;
     gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + duration);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start(now + idx * 0.12);
-    osc.stop(now + idx * 0.12 + duration + 0.05);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(now + idx * 0.12); osc.stop(now + idx * 0.12 + duration + 0.05);
   });
 }
 
@@ -252,7 +207,6 @@ function playFanfareSound() {
 function launchConfetti() {
   if (!confettiCanvas) return;
   const ctx = confettiCanvas.getContext('2d');
-
   confettiCanvas.width = window.innerWidth;
   confettiCanvas.height = window.innerHeight;
   confettiCanvas.style.display = 'block';
@@ -264,14 +218,10 @@ function launchConfetti() {
     particles.push({
       x: confettiCanvas.width * 0.5 + (Math.random() - 0.5) * 80,
       y: confettiCanvas.height * 0.35,
-      w: Math.random() * 9 + 5,
-      h: Math.random() * 9 + 5,
-      vx: (Math.random() - 0.5) * 16,
-      vy: (Math.random() - 1) * 14 - 4,
+      w: Math.random() * 9 + 5, h: Math.random() * 9 + 5,
+      vx: (Math.random() - 0.5) * 16, vy: (Math.random() - 1) * 14 - 4,
       color: colors[Math.floor(Math.random() * colors.length)],
-      angle: Math.random() * 360,
-      spin: (Math.random() - 0.5) * 0.2,
-      opacity: 1
+      angle: Math.random() * 360, spin: (Math.random() - 0.5) * 0.2, opacity: 1
     });
   }
 
@@ -281,18 +231,9 @@ function launchConfetti() {
   function renderConfetti() {
     ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
     let isAnyActive = false;
-
     particles.forEach(p => {
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += 0.38;
-      p.vx *= 0.98;
-      p.angle += p.spin;
-
-      if (Date.now() - startTime > 2400) {
-        p.opacity -= 0.018;
-      }
-
+      p.x += p.vx; p.y += p.vy; p.vy += 0.38; p.vx *= 0.98; p.angle += p.spin;
+      if (Date.now() - startTime > 2400) p.opacity -= 0.018;
       if (p.opacity > 0 && p.y < confettiCanvas.height + 40) {
         isAnyActive = true;
         ctx.save();
@@ -313,7 +254,6 @@ function launchConfetti() {
       confettiCanvas.style.display = 'none';
     }
   }
-
   renderConfetti();
 }
 
@@ -322,9 +262,7 @@ function preloadStoryImages(story) {
   if (!story || !story.pages) return;
   story.pages.forEach(p => {
     if (p.image && !preloadedImages[p.image]) {
-      const img = new Image();
-      img.src = p.image;
-      preloadedImages[p.image] = img;
+      const img = new Image(); img.src = p.image; preloadedImages[p.image] = img;
     }
   });
 }
@@ -333,10 +271,7 @@ function preloadStoryAudios(story) {
   if (!story || !story.pages) return;
   story.pages.forEach(p => {
     if (p.audio && !preloadedAudios[p.audio]) {
-      const audioObj = new Audio();
-      audioObj.preload = 'auto';
-      audioObj.src = p.audio;
-      preloadedAudios[p.audio] = audioObj;
+      const audioObj = new Audio(); audioObj.preload = 'auto'; audioObj.src = p.audio; preloadedAudios[p.audio] = audioObj;
     }
   });
 }
@@ -347,43 +282,23 @@ function renderHomeShelf() {
   const listCerita = window.STORIES_DATABASE || [];
 
   if (listCerita.length === 0) {
-    storiesGrid.innerHTML = `
-      <div style="text-align: center; padding: 40px 15px; color: var(--text-sub);">
-        <p style="font-size: 1.15rem; font-weight: 800; margin-bottom: 8px;">Memuat Koleksi Buku... 📚</p>
-        <p style="font-size: 0.85rem; line-height: 1.5;">Menyinkronkan data cerita. Silakan tunggu sejenak.</p>
-      </div>
-    `;
+    storiesGrid.innerHTML = `<div style="text-align: center; padding: 40px 15px; color: var(--text-sub);"><p style="font-size: 1.15rem; font-weight: 800; margin-bottom: 8px;">Memuat Koleksi Buku... 📚</p></div>`;
     return;
   }
 
   const quizHistory = JSON.parse(localStorage.getItem('storybook_quiz_history') || '{}');
-
   storiesGrid.innerHTML = '';
+
   listCerita.forEach(story => {
     const card = document.createElement('div');
     card.className = 'story-card-item';
-
     const record = quizHistory[story.id];
-    let recordBadge = '';
-    if (record) {
-      recordBadge = `
-        <div class="story-history-badge">
-          <span>${record.stars}</span>
-          <span>${record.score} Poin</span>
-        </div>
-      `;
-    }
+    let recordBadge = record ? `<div class="story-history-badge"><span>${record.stars}</span><span>${record.score} Poin</span></div>` : '';
 
     card.innerHTML = `
-      <img class="story-cover-thumb" 
-           src="${story.cover || (story.pages[0] ? story.pages[0].image : '')}" 
-           alt="${story.title}" 
-           onerror="this.src='https://placehold.co/100x130/58cc02/ffffff?text=Buku';">
+      <img class="story-cover-thumb" src="${story.cover || (story.pages[0] ? story.pages[0].image : '')}" alt="${story.title}" onerror="this.src='https://placehold.co/100x130/58cc02/ffffff?text=Buku';">
       <div class="story-info">
-        <div class="story-meta-row">
-          <span class="story-badge">${story.category || 'Cerita Bergambar'}</span>
-          ${recordBadge}
-        </div>
+        <div class="story-meta-row"><span class="story-badge">${story.category || 'Cerita Bergambar'}</span>${recordBadge}</div>
         <div class="story-title">${story.title}</div>
         <div class="story-desc">${story.description || ''}</div>
       </div>
@@ -406,13 +321,9 @@ const storyPoller = setInterval(() => {
 function updateAutoPlayUI() {
   if (!btnAutoPlayToggle) return;
   if (isAutoPlay) {
-    btnAutoPlayToggle.textContent = '📢';
-    btnAutoPlayToggle.title = 'Narasi Otomatis: AKTIF (Klik untuk mematikan)';
-    btnAutoPlayToggle.classList.remove('autoplay-off');
+    btnAutoPlayToggle.textContent = '📢'; btnAutoPlayToggle.title = 'Narasi Otomatis: AKTIF'; btnAutoPlayToggle.classList.remove('autoplay-off');
   } else {
-    btnAutoPlayToggle.textContent = '🔇';
-    btnAutoPlayToggle.title = 'Narasi Otomatis: NONAKTIF (Klik untuk menyalakan)';
-    btnAutoPlayToggle.classList.add('autoplay-off');
+    btnAutoPlayToggle.textContent = '🔇'; btnAutoPlayToggle.title = 'Narasi Otomatis: NONAKTIF'; btnAutoPlayToggle.classList.add('autoplay-off');
   }
 }
 
@@ -422,36 +333,20 @@ if (btnAutoPlayToggle) {
     localStorage.setItem('storybook_autoplay', isAutoPlay);
     triggerHaptic('tap');
     updateAutoPlayUI();
-
-    if (!isAutoPlay && !audioElement.paused) {
-      audioElement.pause();
-      btnPageAudio.classList.remove('playing');
-    }
+    if (!isAutoPlay && !audioElement.paused) { audioElement.pause(); btnPageAudio.classList.remove('playing'); }
   };
 }
 
 // 10. KONTROL LAYAR PENUH
-function enterFullScreen() {
-  const docElm = document.documentElement;
-  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-    if (docElm.requestFullscreen) {
-      docElm.requestFullscreen().catch(() => {});
-    } else if (docElm.webkitRequestFullscreen) {
-      docElm.webkitRequestFullscreen();
-    }
-  }
-}
-
 function toggleFullScreen() {
   triggerHaptic('tap');
   if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-    enterFullScreen();
+    const docElm = document.documentElement;
+    if (docElm.requestFullscreen) docElm.requestFullscreen().catch(() => {});
+    else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen();
   } else {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    }
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
   }
 }
 
@@ -462,52 +357,32 @@ if (btnFullScreenReader) btnFullScreenReader.onclick = toggleFullScreen;
 if (btnResetHistory) {
   btnResetHistory.onclick = () => {
     triggerHaptic('tap');
-    const isConfirm = confirm("Apakah kamu yakin ingin mereset seluruh catatan bintang dan nilai kuis?");
-    if (isConfirm) {
+    if (confirm("Apakah kamu yakin ingin mereset seluruh catatan bintang dan nilai kuis?")) {
       localStorage.removeItem('storybook_quiz_history');
-      renderHomeShelf();
-      triggerHaptic('correct');
-      alert("✨ Riwayat bintang kuis berhasil direset!");
+      renderHomeShelf(); triggerHaptic('correct'); alert("✨ Riwayat bintang kuis berhasil direset!");
     }
   };
 }
 
 // 12. BUKA CERITA & KEMBALI
 function openStory(story) {
-  currentStory = story;
-  currentPage = 0;
-  inQuizMode = false;
-
-  enterFullScreen();
-  lockScreenOrientation();
-  triggerHaptic('tap');
-
-  preloadStoryImages(story);
-  preloadStoryAudios(story);
-
-  homeView.style.display = 'none';
-  readerView.style.display = 'flex';
-  bookStage.style.display = 'flex';
-  navControls.style.display = 'flex';
-  quizView.style.display = 'none';
-
-  getAudioContext();
-  updateAutoPlayUI();
-  updateHapticUI();
-
+  currentStory = story; currentPage = 0; inQuizMode = false;
+  if (!document.fullscreenElement) {
+    const docElm = document.documentElement;
+    if (docElm.requestFullscreen) docElm.requestFullscreen().catch(() => {});
+  }
+  lockScreenOrientation(); triggerHaptic('tap');
+  preloadStoryImages(story); preloadStoryAudios(story);
+  homeView.style.display = 'none'; readerView.style.display = 'flex';
+  bookStage.style.display = 'flex'; navControls.style.display = 'flex'; quizView.style.display = 'none';
+  getAudioContext(); updateAutoPlayUI(); updateHapticUI();
   renderStoryPageContent(currentPage, isAutoPlay);
 }
 
 function returnToHome() {
-  triggerHaptic('tap');
-  audioElement.pause();
-  btnPageAudio.classList.remove('playing');
+  triggerHaptic('tap'); audioElement.pause(); btnPageAudio.classList.remove('playing');
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-
-  readerView.style.display = 'none';
-  homeView.style.display = 'flex';
-  currentStory = null;
-  renderHomeShelf();
+  readerView.style.display = 'none'; homeView.style.display = 'flex'; currentStory = null; renderHomeShelf();
 }
 
 if (btnBackHome) btnBackHome.onclick = returnToHome;
@@ -518,24 +393,16 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
   if (!currentStory || !currentStory.pages || !currentStory.pages[index]) return;
   const pageData = currentStory.pages[index];
 
-  audioElement.pause();
-  audioElement.currentTime = 0;
-  btnPageAudio.classList.remove('playing');
+  audioElement.pause(); audioElement.currentTime = 0; btnPageAudio.classList.remove('playing');
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
   storyImage.src = pageData.image;
 
   if (pageData.audio) {
-    audioElement.src = pageData.audio;
-    audioElement.preload = 'auto';
-
+    audioElement.src = pageData.audio; audioElement.preload = 'auto';
     if (autoPlayAudio && isAutoPlay) {
       const playPromise = audioElement.play();
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          btnPageAudio.classList.add('playing');
-        }).catch(() => {});
-      }
+      if (playPromise !== undefined) playPromise.then(() => { btnPageAudio.classList.add('playing'); }).catch(() => {});
     }
   } else {
     audioElement.removeAttribute('src');
@@ -545,16 +412,12 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
   const words = (pageData.text || '').split(' ');
   words.forEach(word => {
     if (!word) return;
-    const span = document.createElement('span');
-    span.className = 'clickable-word';
-    span.textContent = word;
-    span.onclick = () => speakWord(word, span);
-    textFlow.appendChild(span);
+    const span = document.createElement('span'); span.className = 'clickable-word'; span.textContent = word;
+    span.onclick = () => speakWord(word, span); textFlow.appendChild(span);
   });
 
   const totalPages = currentStory.pages.length;
-  const percent = ((index + 1) / totalPages) * 100;
-  progressFill.style.width = percent + '%';
+  progressFill.style.width = (((index + 1) / totalPages) * 100) + '%';
   pageIndicator.textContent = `${index + 1}/${totalPages}`;
 
   btnPrev.disabled = (index === 0);
@@ -567,53 +430,30 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
 function turnPage(direction) {
   if (isFlipping) return;
   isFlipping = true;
-
-  playPageTurnSound();
-  triggerHaptic('tap');
-
+  playPageTurnSound(); triggerHaptic('tap');
   const outClass = (direction === 'next') ? 'flip-out-left' : 'flip-out-right';
   const inClass = (direction === 'next') ? 'flip-in-right' : 'flip-in-left';
-
   pageSheet.classList.remove('flip-in-right', 'flip-in-left');
   pageSheet.classList.add(outClass);
 
   setTimeout(() => {
-    if (direction === 'next') {
-      currentPage++;
-    } else {
-      currentPage--;
-    }
-
+    direction === 'next' ? currentPage++ : currentPage--;
     renderStoryPageContent(currentPage, isAutoPlay);
-
-    pageSheet.classList.remove(outClass);
-    pageSheet.classList.add(inClass);
-
-    setTimeout(() => {
-      pageSheet.classList.remove(inClass);
-      isFlipping = false;
-    }, 200);
+    pageSheet.classList.remove(outClass); pageSheet.classList.add(inClass);
+    setTimeout(() => { pageSheet.classList.remove(inClass); isFlipping = false; }, 200);
   }, 180);
 }
 
 // 15. SUARA KATA (TTS)
 function speakWord(word, element) {
   if (!('speechSynthesis' in window)) return;
-  triggerHaptic('tap');
-
-  audioElement.pause();
-  btnPageAudio.classList.remove('playing');
-  window.speechSynthesis.cancel();
-
+  triggerHaptic('tap'); audioElement.pause(); btnPageAudio.classList.remove('playing'); window.speechSynthesis.cancel();
   const cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
   const utterance = new SpeechSynthesisUtterance(cleanWord);
-  utterance.lang = 'id-ID';
-  utterance.rate = 0.85;
-
+  utterance.lang = 'id-ID'; utterance.rate = 0.85;
   element.classList.add('speaking');
   utterance.onend = () => element.classList.remove('speaking');
   utterance.onerror = () => element.classList.remove('speaking');
-
   window.speechSynthesis.speak(utterance);
 }
 
@@ -621,189 +461,82 @@ function speakWord(word, element) {
 btnPageAudio.onclick = () => {
   triggerHaptic('tap');
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-
-  if (audioElement.paused) {
-    audioElement.play().then(() => {
-      btnPageAudio.classList.add('playing');
-    }).catch(err => console.warn(err));
-  } else {
-    audioElement.pause();
-    btnPageAudio.classList.remove('playing');
-  }
+  if (audioElement.paused) { audioElement.play().then(() => { btnPageAudio.classList.add('playing'); }).catch(err => console.warn(err)); } 
+  else { audioElement.pause(); btnPageAudio.classList.remove('playing'); }
 };
-
-audioElement.onended = () => {
-  btnPageAudio.classList.remove('playing');
-};
+audioElement.onended = () => { btnPageAudio.classList.remove('playing'); };
 
 // 17. GESTURE SWIPE TOUCH
-let touchStartX = 0;
-let touchStartY = 0;
-
-bookStage.addEventListener('touchstart', (e) => {
-  touchStartX = e.changedTouches[0].screenX;
-  touchStartY = e.changedTouches[0].screenY;
-}, { passive: true });
-
+let touchStartX = 0; let touchStartY = 0;
+bookStage.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }, { passive: true });
 bookStage.addEventListener('touchend', (e) => {
   if (inQuizMode || isFlipping) return;
-
   const diffX = e.changedTouches[0].screenX - touchStartX;
   const diffY = e.changedTouches[0].screenY - touchStartY;
-
-  if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 45) {
-    if (diffX < 0) {
-      handleNextAction();
-    } else {
-      if (currentPage > 0) turnPage('prev');
-    }
-  }
+  if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 45) { diffX < 0 ? handleNextAction() : (currentPage > 0 && turnPage('prev')); }
 }, { passive: true });
 
 function handleNextAction() {
-  if (currentPage < currentStory.pages.length - 1) {
-    turnPage('next');
-  } else {
-    if (currentStory.quiz && currentStory.quiz.length > 0) {
-      startQuiz();
-    } else {
-      triggerHaptic('celebrate');
-      alert("🎉 Selamat! Kamu telah membaca seluruh cerita!");
-      returnToHome();
-    }
+  if (currentPage < currentStory.pages.length - 1) { turnPage('next'); } 
+  else {
+    if (currentStory.quiz && currentStory.quiz.length > 0) { startQuiz(); } 
+    else { triggerHaptic('celebrate'); alert("🎉 Selamat! Kamu telah membaca seluruh cerita!"); returnToHome(); }
   }
 }
 
 btnNext.onclick = handleNextAction;
-btnPrev.onclick = () => {
-  if (currentPage > 0) turnPage('prev');
-};
+btnPrev.onclick = () => { if (currentPage > 0) turnPage('prev'); };
 
 // 18. KUIS PEMAHAMAN
 function startQuiz() {
-  inQuizMode = true;
-  currentQuizIndex = 0;
-  quizScore = 0;
-  correctCount = 0;
-
-  triggerHaptic('tap');
-  audioElement.pause();
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-
-  bookStage.style.display = 'none';
-  navControls.style.display = 'none';
-  quizView.style.display = 'flex';
-  quizQuestionBox.style.display = 'block';
-  quizResult.style.display = 'none';
-
+  inQuizMode = true; currentQuizIndex = 0; quizScore = 0; correctCount = 0;
+  triggerHaptic('tap'); audioElement.pause(); if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  bookStage.style.display = 'none'; navControls.style.display = 'none'; quizView.style.display = 'flex';
+  quizQuestionBox.style.display = 'block'; quizResult.style.display = 'none';
   renderQuizQuestion();
 }
 
 function renderQuizQuestion() {
   const qData = currentStory.quiz[currentQuizIndex];
   quizStep.textContent = `${currentQuizIndex + 1}/${currentStory.quiz.length}`;
-  quizQuestionText.textContent = qData.q;
-  quizOptions.innerHTML = '';
-
+  quizQuestionText.textContent = qData.q; quizOptions.innerHTML = '';
   qData.options.forEach((optText, idx) => {
-    const btn = document.createElement('button');
-    btn.className = 'quiz-opt-btn';
+    const btn = document.createElement('button'); btn.className = 'quiz-opt-btn';
     btn.innerHTML = `<span style="opacity: 0.6; font-weight: 800;">${String.fromCharCode(65 + idx)}.</span> ${optText}`;
-    btn.onclick = () => checkQuizAnswer(idx, qData.answer, btn);
-    quizOptions.appendChild(btn);
+    btn.onclick = () => checkQuizAnswer(idx, qData.answer, btn); quizOptions.appendChild(btn);
   });
 }
 
 function checkQuizAnswer(selectedIdx, correctIdx, btnElement) {
   const allOptButtons = quizOptions.querySelectorAll('.quiz-opt-btn');
   allOptButtons.forEach(b => b.style.pointerEvents = 'none');
-
   const pointsPerQuestion = 100 / currentStory.quiz.length;
-
   if (selectedIdx === correctIdx) {
-    playCorrectSound();
-    triggerHaptic('correct');
-    btnElement.classList.add('correct');
-    quizScore += pointsPerQuestion;
-    correctCount++;
+    playCorrectSound(); triggerHaptic('correct'); btnElement.classList.add('correct'); quizScore += pointsPerQuestion; correctCount++;
   } else {
-    playWrongSound();
-    triggerHaptic('wrong');
-    btnElement.classList.add('wrong');
-    allOptButtons[correctIdx].classList.add('correct');
+    playWrongSound(); triggerHaptic('wrong'); btnElement.classList.add('wrong'); allOptButtons[correctIdx].classList.add('correct');
   }
-
-  setTimeout(() => {
-    if (currentQuizIndex < currentStory.quiz.length - 1) {
-      currentQuizIndex++;
-      renderQuizQuestion();
-    } else {
-      showQuizResult();
-    }
-  }, 1200);
+  setTimeout(() => { currentQuizIndex < currentStory.quiz.length - 1 ? (currentQuizIndex++, renderQuizQuestion()) : showQuizResult(); }, 1200);
 }
 
 function showQuizResult() {
-  quizQuestionBox.style.display = 'none';
-  quizResult.style.display = 'flex';
-
-  const finalScore = Math.round(quizScore);
-  const totalQuestions = currentStory.quiz.length;
-
-  playFanfareSound();
-  resultScore.textContent = `${finalScore} Poin`;
-
-  let stars = "⭐";
-  let message = "Ayo kita baca lagi cerita ini bersama-sama agar lebih paham!";
-
-  if (finalScore >= 90) {
-    stars = "⭐⭐⭐";
-    message = "Luar biasa! Kamu menyimak seluruh cerita dan pesan moral dengan sempurna!";
-    launchConfetti();
-    triggerHaptic('celebrate');
-  } else if (finalScore >= 60) {
-    stars = "⭐⭐";
-    message = "Bagus sekali! Sebagian besar pertanyaan berhasil kamu jawab dengan benar.";
-    triggerHaptic('correct');
-  } else {
-    triggerHaptic('wrong');
-  }
-
+  quizQuestionBox.style.display = 'none'; quizResult.style.display = 'flex';
+  const finalScore = Math.round(quizScore); const totalQuestions = currentStory.quiz.length;
+  playFanfareSound(); resultScore.textContent = `${finalScore} Poin`;
+  let stars = "⭐"; let message = "Ayo kita baca lagi cerita ini bersama-sama agar lebih paham!";
+  if (finalScore >= 90) { stars = "⭐⭐⭐"; message = "Luar biasa! Kamu menyimak seluruh cerita dan pesan moral dengan sempurna!"; launchConfetti(); triggerHaptic('celebrate'); } 
+  else if (finalScore >= 60) { stars = "⭐⭐"; message = "Bagus sekali! Sebagian besar pertanyaan berhasil kamu jawab dengan benar."; triggerHaptic('correct'); } 
+  else { triggerHaptic('wrong'); }
   starsBox.textContent = stars;
-  resultMsg.innerHTML = `
-    <strong>${message}</strong><br>
-    <span style="font-size: 0.9rem; opacity: 0.8; display: inline-block; margin-top: 6px;">
-      Jawaban Benar: ${correctCount} dari ${totalQuestions} Soal
-    </span>
-  `;
-
-  const historyKey = 'storybook_quiz_history';
-  const quizHistory = JSON.parse(localStorage.getItem(historyKey) || '{}');
-  const previousRecord = quizHistory[currentStory.id];
-
-  if (!previousRecord || finalScore >= previousRecord.score) {
-    quizHistory[currentStory.id] = {
-      score: finalScore,
-      stars: stars,
-      correctCount: correctCount,
-      total: totalQuestions,
-      savedAt: new Date().toLocaleDateString('id-ID')
-    };
+  resultMsg.innerHTML = `<strong>${message}</strong><br><span style="font-size: 0.9rem; opacity: 0.8; display: inline-block; margin-top: 6px;">Jawaban Benar: ${correctCount} dari ${totalQuestions} Soal</span>`;
+  const historyKey = 'storybook_quiz_history'; const quizHistory = JSON.parse(localStorage.getItem(historyKey) || '{}');
+  if (!quizHistory[currentStory.id] || finalScore >= quizHistory[currentStory.id].score) {
+    quizHistory[currentStory.id] = { score: finalScore, stars: stars, correctCount: correctCount, total: totalQuestions, savedAt: new Date().toLocaleDateString('id-ID') };
     localStorage.setItem(historyKey, JSON.stringify(quizHistory));
   }
 }
 
-if (btnRestartStory) {
-  btnRestartStory.onclick = () => {
-    triggerHaptic('tap');
-    inQuizMode = false;
-    currentPage = 0;
-    quizView.style.display = 'none';
-    bookStage.style.display = 'flex';
-    navControls.style.display = 'flex';
-    renderStoryPageContent(currentPage, isAutoPlay);
-  };
-}
+if (btnRestartStory) { btnRestartStory.onclick = () => { triggerHaptic('tap'); inQuizMode = false; currentPage = 0; quizView.style.display = 'none'; bookStage.style.display = 'flex'; navControls.style.display = 'flex'; renderStoryPageContent(currentPage, isAutoPlay); }; }
 
 // 19. MODE MALAM
 function applyTheme(isDark) {
@@ -813,98 +546,78 @@ function applyTheme(isDark) {
   localStorage.setItem('storybook_theme', isDark ? 'dark' : 'light');
 }
 
-function toggleTheme() {
-  triggerHaptic('tap');
-  const isDark = !document.body.classList.contains('dark-mode');
-  applyTheme(isDark);
-}
-
+function toggleTheme() { triggerHaptic('tap'); applyTheme(!document.body.classList.contains('dark-mode')); }
 if (btnThemeToggleHome) btnThemeToggleHome.onclick = toggleTheme;
 if (btnThemeToggleReader) btnThemeToggleReader.onclick = toggleTheme;
-
-if (localStorage.getItem('storybook_theme') === 'dark') {
-  applyTheme(true);
-}
+if (localStorage.getItem('storybook_theme') === 'dark') { applyTheme(true); }
 
 // 20. INDIKATOR JARINGAN
 function updateNetworkStatus() {
   if (!networkStatus) return;
   const isOnline = navigator.onLine;
-
   networkStatus.className = `network-badge ${isOnline ? 'online' : 'offline'}`;
   const statusText = networkStatus.querySelector('.status-text');
-  if (statusText) {
-    statusText.textContent = isOnline ? 'Online' : 'Offline';
-  }
+  if (statusText) statusText.textContent = isOnline ? 'Online' : 'Offline';
 }
-
-window.addEventListener('online', () => {
-  updateNetworkStatus();
-  triggerHaptic('tap');
-});
-
-window.addEventListener('offline', () => {
-  updateNetworkStatus();
-  triggerHaptic('wrong');
-});
+window.addEventListener('online', () => { updateNetworkStatus(); triggerHaptic('tap'); });
+window.addEventListener('offline', () => { updateNetworkStatus(); triggerHaptic('wrong'); });
 
 // 21. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT)
 let deferredPrompt = null;
 
-// Deteksi apakah sedang dibuka di dalam aplikasi yang sudah diinstal
+// Fungsi untuk mengecek apakah aplikasi sudah dibuka di mode "Standalone" (Sudah Terinstal)
 function isRunningStandalone() {
   return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 }
 
-// Paksa tampilkan tombol pasang jika aplikasi berjalan di browser biasa
-function updateInstallUI() {
+// Fungsi untuk menampilkan atau menyembunyikan tombol Instal
+function checkAndShowInstallButtons() {
   const displayStyle = isRunningStandalone() ? 'none' : 'flex';
   if (btnInstallApp) btnInstallApp.style.display = displayStyle;
   if (btnInstallReader) btnInstallReader.style.display = displayStyle;
   if (pwaInstallBanner) pwaInstallBanner.style.display = displayStyle;
 }
 
-// Simpan prompt bawaan Chrome secara diam-diam
+// Simpan event instalasi dari Chrome saat syarat PWA terpenuhi
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
+  checkAndShowInstallButtons(); // Pastikan tombol aktif jika prompt siap
 });
 
-// Eksekusi Pemicu Native Prompt Langsung (Tanpa Titik Tiga)
+// Eksekusi Panggilan Dialog Bawaan Sistem HP (1-Klik)
 async function executePwaInstall() {
   triggerHaptic('tap');
 
   if (deferredPrompt) {
-    // 1-CLICK: Langsung panggil popup konfirmasi instalasi bawaan Chrome / Android
+    // 1-KLIK: Memicu dialog pop-up resmi dari bawah layar HP
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     
     if (outcome === 'accepted') {
-      // Sembunyikan tombol jika pengguna setuju memasang
+      // Sembunyikan tombol jika pengguna setuju menginstal
       if (btnInstallApp) btnInstallApp.style.display = 'none';
       if (btnInstallReader) btnInstallReader.style.display = 'none';
       if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
     }
-    deferredPrompt = null; // Reset
+    // Kosongkan agar tidak terpanggil ulang secara ganda
+    deferredPrompt = null;
   } else {
-    // Fallback jika belum siap atau menggunakan iOS/Safari
-    alert("Sistem belum siap untuk instalasi 1-klik (atau Anda menggunakan browser Safari iPhone).\n\nAlternatif: Tekan ikon Titik Tiga (⋮) atau tombol Bagikan, lalu pilih 'Tambahkan ke Layar Utama'.");
+    // Fallback: Jika diklik tetapi Chrome belum merespons / menolak popup
+    alert("Sistem peramban sedang memuat komponen PWA.\n\nJika tetap tidak muncul, silakan tekan ikon menu (Titik Tiga ⋮) di sudut browser, lalu pilih 'Tambahkan ke Layar Utama'.");
   }
 }
 
-// Hubungkan semua tombol ke fungsi eksekusi 1-klik
+// Hubungkan semua tombol Instalasi ke fungsi eksekusi 1-Klik
 if (btnInstallApp) btnInstallApp.onclick = executePwaInstall;
 if (btnInstallReader) btnInstallReader.onclick = executePwaInstall;
 if (btnInstallPwa) btnInstallPwa.onclick = executePwaInstall;
 
 if (btnCloseInstallBanner) {
-  btnCloseInstallBanner.onclick = () => {
-    triggerHaptic('tap');
-    pwaInstallBanner.style.display = 'none';
-  };
+  btnCloseInstallBanner.onclick = () => { triggerHaptic('tap'); pwaInstallBanner.style.display = 'none'; };
 }
 
-// Sembunyikan semua tombol pasang jika peramban sukses menginstal
+// Hilangkan semua tombol jika terdeteksi bahwa aplikasi baru saja sukses terinstal
 window.addEventListener('appinstalled', () => {
   if (btnInstallApp) btnInstallApp.style.display = 'none';
   if (btnInstallReader) btnInstallReader.style.display = 'none';
@@ -919,5 +632,5 @@ window.addEventListener('DOMContentLoaded', () => {
   updateAutoPlayUI();
   updateHapticUI();
   updateNetworkStatus();
-  updateInstallUI(); // Paksa verifikasi dan pemunculan tombol instalasi
+  checkAndShowInstallButtons(); // Pastikan tombol tampil di awal jika belum diinstal
 });
