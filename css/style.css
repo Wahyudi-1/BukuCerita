@@ -500,3 +500,92 @@ body.dark-mode .story-history-badge {
   gap: 8px;
   flex-wrap: wrap;
 }
+
+/* ================= BANNER INSTALASI PWA ================= */
+.pwa-install-banner {
+  background: linear-gradient(135deg, #58cc02, #22c55e);
+  color: #ffffff;
+  border-radius: 18px;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(88, 204, 2, 0.35);
+  margin-bottom: 6px;
+  animation: slideDownBanner 0.4s ease;
+}
+
+@keyframes slideDownBanner {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.pwa-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pwa-icon {
+  font-size: 1.8rem;
+}
+
+.pwa-text strong {
+  font-size: 0.95rem;
+  display: block;
+}
+
+.pwa-text p {
+  font-size: 0.78rem;
+  opacity: 0.92;
+  margin-top: 2px;
+}
+
+.pwa-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-install-now {
+  background: #ffffff;
+  color: #15803d;
+  font-weight: 800;
+  border: none;
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.btn-close-banner {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* Header Tools Grup */
+.header-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Status Sakelar Narasi Otomatis */
+.btn-tool.autoplay-off {
+  background: #fee2e2;
+  color: #ef4444;
+  border-color: #fca5a5;
+  box-shadow: 0 3px 0 #f87171;
+}
+
+body.dark-mode .btn-tool.autoplay-off {
+  background: #451a1a;
+  color: #fca5a5;
+  border-color: #7f1d1d;
+  box-shadow: 0 3px 0 #991b1b;
+}
