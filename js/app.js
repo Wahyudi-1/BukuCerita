@@ -1,16 +1,17 @@
 /**
  * ================================================================
- * APP.JS - MESIN UTAMA BUKU CERITA INTERAKTIF (READER & PERPUSTAKAAN)
+ * APP.JS - MESIN BUKU CERITA (SYNC FLIP, PRELOAD, & RESPONSIVE)
  * ================================================================
  */
 
-// 1. STATE MANAGER (Penyimpan Kondisi Aplikasi)
+// 1. STATE MANAGER
 let currentStory = null;
 let currentPage = 0;
 let isFlipping = false;
 let inQuizMode = false;
 let currentQuizIndex = 0;
 let quizScore = 0;
+const preloadedImages = {}; // Menampung cache gambar di RAM peramban
 
 // 2. REFERENSI ELEMEN DOM
 const homeView = document.getElementById('homeView');
@@ -45,7 +46,7 @@ const btnFinishToHome = document.getElementById('btnFinishToHome');
 const btnThemeToggleHome = document.getElementById('btnThemeToggleHome');
 const btnThemeToggleReader = document.getElementById('btnThemeToggleReader');
 
-// 3. EFEK AUDIO BALIK LEMBARAN KERTAS (Web Audio API - 100% Offline)
+// 3. EFEK AUDIO BALIK KERTAS (Web Audio API)
 function playPageTurnSound() {
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -69,43 +70,50 @@ function playPageTurnSound() {
     noise.connect(filter);
     filter.connect(ctx.destination);
     noise.start();
-  } catch (e) {
-    // Abaikan jika browser membatasi autoplay audio context
-  }
+  } catch (e) {}
 }
 
-// 4. MEMUAT & MENAMPILKAN RAK BERANDA DENGAN PENGAMAN DATA
+// 4. PRELOAD GAMBAR KE MEMORI (Kunci Pergantian Gambar Instan)
+function preloadStoryImages(story) {
+  if (!story || !story.pages) return;
+  story.pages.forEach(p => {
+    if (p.image && !preloadedImages[p.image]) {
+      const img = new Image();
+      img.src = p.image;
+      preloadedImages[p.image] = img;
+    }
+  });
+}
+
+// 5. RENDER RAK BUKU DENGAN AUTO-RETRY SYSTEM
 function renderHomeShelf() {
   if (!storiesGrid) return;
-  storiesGrid.innerHTML = '';
 
-  // Ambil data cerita dari variabel global window
   const listCerita = window.STORIES_DATABASE || [];
 
-  // Jika data cerita belum siap/kosong
   if (listCerita.length === 0) {
     storiesGrid.innerHTML = `
       <div style="text-align: center; padding: 40px 15px; color: var(--text-sub);">
         <p style="font-size: 1.15rem; font-weight: 800; margin-bottom: 8px;">Memuat Koleksi Buku... 📚</p>
         <p style="font-size: 0.85rem; line-height: 1.5;">
-          Jika tidak kunjung muncul, pastikan baris <code>&lt;script src="js/stories/arka.js"&gt;&lt;/script&gt;</code> sudah terpasang di <code>index.html</code>.
+          Sedang menyinkronkan data cerita. Jika tetap kosong, periksa console F12 browser.
         </p>
       </div>
     `;
     return;
   }
 
-  // Render kartu buku
+  storiesGrid.innerHTML = '';
   listCerita.forEach(story => {
     const card = document.createElement('div');
     card.className = 'story-card-item';
     card.innerHTML = `
       <img class="story-cover-thumb" 
-           src="${story.cover || './images/arka/01.jpg'}" 
+           src="${story.cover || (story.pages[0] ? story.pages[0].image : '')}" 
            alt="${story.title}" 
            onerror="this.src='https://placehold.co/100x130/58cc02/ffffff?text=Buku';">
       <div class="story-info">
-        <span class="story-badge">${story.category || 'Cerita Anak'}</span>
+        <span class="story-badge">${story.category || 'Cerita Bergambar'}</span>
         <div class="story-title">${story.title}</div>
         <div class="story-desc">${story.description || ''}</div>
       </div>
@@ -115,11 +123,24 @@ function renderHomeShelf() {
   });
 }
 
-// 5. BUKA BUKU & KEMBALI KE BERANDA
+// Polling otomatis untuk memastikan file arka.js terdeteksi jika ada delay
+let checkCount = 0;
+const storyPoller = setInterval(() => {
+  checkCount++;
+  if ((window.STORIES_DATABASE && window.STORIES_DATABASE.length > 0) || checkCount > 25) {
+    clearInterval(storyPoller);
+    renderHomeShelf();
+  }
+}, 150);
+
+// 6. BUKA CERITA & KEMBALI KE BERANDA
 function openStory(story) {
   currentStory = story;
   currentPage = 0;
   inQuizMode = false;
+
+  // Lakukan preloading semua gambar buku ini ke RAM
+  preloadStoryImages(story);
 
   homeView.style.display = 'none';
   readerView.style.display = 'flex';
@@ -127,7 +148,7 @@ function openStory(story) {
   navControls.style.display = 'flex';
   quizView.style.display = 'none';
 
-  renderStoryPage(currentPage);
+  renderStoryPageContent(currentPage);
 }
 
 function returnToHome() {
@@ -138,29 +159,27 @@ function returnToHome() {
   readerView.style.display = 'none';
   homeView.style.display = 'flex';
   currentStory = null;
-
-  // Segarkan ulang rak untuk memastikan status terbaru
   renderHomeShelf();
 }
 
 if (btnBackHome) btnBackHome.onclick = returnToHome;
 if (btnFinishToHome) btnFinishToHome.onclick = returnToHome;
 
-// 6. RENDER HALAMAN CERITA
-function renderStoryPage(index) {
+// 7. RENDER ISI KONTEN (Teks & Gambar)
+function renderStoryPageContent(index) {
   if (!currentStory || !currentStory.pages || !currentStory.pages[index]) return;
   const pageData = currentStory.pages[index];
 
-  // Matikan suara sebelumnya
+  // Matikan audio sebelumnya
   audioElement.pause();
   btnPageAudio.classList.remove('playing');
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
-  // Set gambar & file audio
+  // Pasang gambar langsung dari cache memori
   storyImage.src = pageData.image;
   audioElement.src = pageData.audio || '';
 
-  // Render teks perkata interaktif
+  // Render teks per kata
   textFlow.innerHTML = '';
   const words = (pageData.text || '').split(' ');
   words.forEach(word => {
@@ -178,48 +197,49 @@ function renderStoryPage(index) {
   progressFill.style.width = percent + '%';
   pageIndicator.textContent = `${index + 1}/${totalPages}`;
 
-  // Perbarui tombol navigasi
+  // Perbarui status tombol
   btnPrev.disabled = (index === 0);
   const isLastPage = (index === totalPages - 1);
   const hasQuiz = (currentStory.quiz && currentStory.quiz.length > 0);
   btnNext.textContent = isLastPage ? (hasQuiz ? 'Ikuti Kuis 🎯' : 'Selesai 🏁') : 'Balik Halaman';
 }
 
-// 7. ANIMASI 3D BALIK HALAMAN
+// 8. SINKRONISASI PRESISI BALIK HALAMAN 3D (Gambar Berganti Tepat di Sudut 90 Derajat)
 function turnPage(direction) {
   if (isFlipping) return;
   isFlipping = true;
 
-  audioElement.pause();
-  btnPageAudio.classList.remove('playing');
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-
   playPageTurnSound();
 
-  const outClass = (direction === 'next') ? 'flipping-out-next' : 'flipping-out-prev';
-  const inClass = (direction === 'next') ? 'flipping-in-next' : 'flipping-in-prev';
+  const outClass = (direction === 'next') ? 'flip-out-left' : 'flip-out-right';
+  const inClass = (direction === 'next') ? 'flip-in-right' : 'flip-in-left';
 
+  // Mulai putaran fase 1 (0 ke 90 derajat)
+  pageSheet.classList.remove('flip-in-right', 'flip-in-left');
   pageSheet.classList.add(outClass);
 
+  // Tepat saat lembaran tegak lurus tipis (180ms), ganti gambar & teks
   setTimeout(() => {
     if (direction === 'next') {
       currentPage++;
     } else {
       currentPage--;
     }
-    renderStoryPage(currentPage);
 
+    renderStoryPageContent(currentPage);
+
+    // Lanjutkan putaran fase 2 (90 ke 0 derajat dengan konten baru yang sudah terpasang)
     pageSheet.classList.remove(outClass);
     pageSheet.classList.add(inClass);
 
     setTimeout(() => {
       pageSheet.classList.remove(inClass);
       isFlipping = false;
-    }, 400);
-  }, 380);
+    }, 200);
+  }, 180);
 }
 
-// 8. SUARA PER KATA (Text-to-Speech Web Speech API)
+// 9. TEXT-TO-SPEECH SUARA PER KATA
 function speakWord(word, element) {
   if (!('speechSynthesis' in window)) return;
 
@@ -239,7 +259,7 @@ function speakWord(word, element) {
   window.speechSynthesis.speak(utterance);
 }
 
-// 9. KONTROL AUDIO UTUH 1 HALAMAN
+// 10. PEMUTAR AUDIO SATU HALAMAN
 btnPageAudio.onclick = () => {
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
@@ -247,7 +267,7 @@ btnPageAudio.onclick = () => {
     audioElement.play().then(() => {
       btnPageAudio.classList.add('playing');
     }).catch(err => {
-      console.warn("File audio belum disematkan atau path belum sesuai:", err);
+      console.warn("File audio belum disematkan pada path:", audioElement.src);
     });
   } else {
     audioElement.pause();
@@ -259,7 +279,7 @@ audioElement.onended = () => {
   btnPageAudio.classList.remove('playing');
 };
 
-// 10. GESTURE USAP LAYAR (Swipe Touch)
+// 11. GESTURE SWIPE TOUCH (LAYAR HP & TABLET)
 let touchStartX = 0;
 let touchStartY = 0;
 
@@ -274,19 +294,15 @@ bookStage.addEventListener('touchend', (e) => {
   const diffX = e.changedTouches[0].screenX - touchStartX;
   const diffY = e.changedTouches[0].screenY - touchStartY;
 
-  // Cek apakah gerakan geser horizontal lebih dari 50px
-  if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+  if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 45) {
     if (diffX < 0) {
-      // Geser kiri -> halaman selanjutnya
       handleNextAction();
     } else {
-      // Geser kanan -> halaman sebelumnya
       if (currentPage > 0) turnPage('prev');
     }
   }
 }, { passive: true });
 
-// 11. SISTEM KUIS PEMAHAMAN BACAAN
 function handleNextAction() {
   if (currentPage < currentStory.pages.length - 1) {
     turnPage('next');
@@ -294,7 +310,7 @@ function handleNextAction() {
     if (currentStory.quiz && currentStory.quiz.length > 0) {
       startQuiz();
     } else {
-      alert("🎉 Selamat! Kamu telah menyelesaikan membaca cerita ini!");
+      alert("🎉 Selamat! Kamu telah membaca seluruh cerita!");
       returnToHome();
     }
   }
@@ -305,6 +321,7 @@ btnPrev.onclick = () => {
   if (currentPage > 0) turnPage('prev');
 };
 
+// 12. SISTEM KUIS PEMAHAMAN BACAAN
 function startQuiz() {
   inQuizMode = true;
   currentQuizIndex = 0;
@@ -358,7 +375,7 @@ function checkQuizAnswer(selectedIdx, correctIdx, btnElement) {
     } else {
       showQuizResult();
     }
-  }, 1200);
+  }, 1100);
 }
 
 function showQuizResult() {
@@ -387,11 +404,11 @@ if (btnRestartStory) {
     quizView.style.display = 'none';
     bookStage.style.display = 'flex';
     navControls.style.display = 'flex';
-    renderStoryPage(currentPage);
+    renderStoryPageContent(currentPage);
   };
 }
 
-// 12. MODE MALAM / GELAP DENGAN PENYIMPANAN LOCALSTORAGE
+// 13. MODE MALAM
 function applyTheme(isDark) {
   document.body.classList.toggle('dark-mode', isDark);
   if (btnThemeToggleHome) btnThemeToggleHome.textContent = isDark ? '☀️' : '🌙';
@@ -411,12 +428,5 @@ if (localStorage.getItem('storybook_theme') === 'dark') {
   applyTheme(true);
 }
 
-// 13. INISIALISASI AWAL (Menjamin Data Selesai Terbaca)
-window.addEventListener('DOMContentLoaded', () => {
-  renderHomeShelf();
-});
-
-// Cadangan: Muat langsung jika DOMContentLoaded telah lewat
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-  renderHomeShelf();
-}
+// 14. INISIALISASI
+window.addEventListener('DOMContentLoaded', renderHomeShelf);
