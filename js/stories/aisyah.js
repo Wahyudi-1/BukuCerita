@@ -1,4 +1,12 @@
-const storyPages = [
+window.STORIES_DATABASE = window.STORIES_DATABASE || [];
+
+window.STORIES_DATABASE.push({
+  id: "arka-berdoa",
+  title: "Kebiasaan Baik Arka",
+  category: "Fase Fondasi / A",
+  cover: "./images/arka/01.jpg",
+  description: "Kisah Arka yang selalu memulai dan menutup hari dengan doa serta rasa syukur.",
+  pages: [
   {
     page: 1,
     text: "Halo, teman-teman! Namaku Aisyah. Kamarku cerah dan hari ini terasa menyenangkan.",
