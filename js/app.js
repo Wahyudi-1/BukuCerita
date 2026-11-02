@@ -1,6 +1,6 @@
 /**
  * ================================================================
- * APP.JS - MESIN BUKU CERITA (SYNC FLIP, PRELOAD, & RESPONSIVE)
+ * APP.JS - MESIN BUKU CERITA (AUDIO ENGINE, SYNCHRONIZED FLIP, & QUIZ SFX)
  * ================================================================
  */
 
@@ -11,7 +11,8 @@ let isFlipping = false;
 let inQuizMode = false;
 let currentQuizIndex = 0;
 let quizScore = 0;
-const preloadedImages = {}; // Menampung cache gambar di RAM peramban
+let correctCount = 0;
+const preloadedImages = {};
 
 // 2. REFERENSI ELEMEN DOM
 const homeView = document.getElementById('homeView');
@@ -46,34 +47,135 @@ const btnFinishToHome = document.getElementById('btnFinishToHome');
 const btnThemeToggleHome = document.getElementById('btnThemeToggleHome');
 const btnThemeToggleReader = document.getElementById('btnThemeToggleReader');
 
-// 3. EFEK AUDIO BALIK KERTAS (Web Audio API)
-function playPageTurnSound() {
-  try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-    const ctx = new AudioCtx();
-    const bufferSize = ctx.sampleRate * 0.12;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
+// 3. MESIN AUDIO SINTETIS (WEB AUDIO API - 100% OFFLINE)
+let audioCtx = null;
 
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+// Mengaktifkan AudioContext tunggal yang konsisten
+function getAudioContext() {
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      audioCtx = new AudioContextClass();
     }
-
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.value = 1400;
-    filter.Q.value = 1.2;
-
-    noise.connect(filter);
-    filter.connect(ctx.destination);
-    noise.start();
-  } catch (e) {}
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
 }
 
-// 4. PRELOAD GAMBAR KE MEMORI (Kunci Pergantian Gambar Instan)
+// Buka kunci AudioContext pada interaksi pertama pengguna
+window.addEventListener('click', () => getAudioContext(), { once: true });
+window.addEventListener('touchstart', () => getAudioContext(), { once: true });
+
+// A. Suara Gesekan Kertas (Page Turn)
+function playPageTurnSound() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const bufferSize = ctx.sampleRate * 0.12;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+  }
+
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 1400;
+  filter.Q.value = 1.2;
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.4, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+
+  noise.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  noise.start();
+}
+
+// B. Suara Jawaban Benar (Melodi Ceria Nada Naik)
+function playCorrectSound() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const now = ctx.currentTime;
+  const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+
+  notes.forEach((freq, idx) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+
+    gain.gain.setValueAtTime(0.28, now + idx * 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.35);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now + idx * 0.08);
+    osc.stop(now + idx * 0.08 + 0.36);
+  });
+}
+
+// C. Suara Jawaban Salah (Nada Rendah Menurun)
+function playWrongSound() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(170, now);
+  osc.frequency.linearRampToValueAtTime(95, now + 0.28);
+
+  gain.gain.setValueAtTime(0.25, now);
+  gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start(now);
+  osc.stop(now + 0.3);
+}
+
+// D. Suara Fanfare Selesai Kuis
+function playFanfareSound() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+  const now = ctx.currentTime;
+
+  notes.forEach((freq, idx) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+
+    gain.gain.setValueAtTime(0.3, now + idx * 0.12);
+    const duration = (idx === notes.length - 1) ? 0.6 : 0.25;
+    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + duration);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now + idx * 0.12);
+    osc.stop(now + idx * 0.12 + duration + 0.05);
+  });
+}
+
+// 4. PRELOAD GAMBAR KE MEMORI
 function preloadStoryImages(story) {
   if (!story || !story.pages) return;
   story.pages.forEach(p => {
@@ -85,19 +187,16 @@ function preloadStoryImages(story) {
   });
 }
 
-// 5. RENDER RAK BUKU DENGAN AUTO-RETRY SYSTEM
+// 5. RENDER RAK BUKU DI BERANDA
 function renderHomeShelf() {
   if (!storiesGrid) return;
-
   const listCerita = window.STORIES_DATABASE || [];
 
   if (listCerita.length === 0) {
     storiesGrid.innerHTML = `
       <div style="text-align: center; padding: 40px 15px; color: var(--text-sub);">
         <p style="font-size: 1.15rem; font-weight: 800; margin-bottom: 8px;">Memuat Koleksi Buku... 📚</p>
-        <p style="font-size: 0.85rem; line-height: 1.5;">
-          Sedang menyinkronkan data cerita. Jika tetap kosong, periksa console F12 browser.
-        </p>
+        <p style="font-size: 0.85rem; line-height: 1.5;">Menyinkronkan data cerita. Silakan tunggu sejenak.</p>
       </div>
     `;
     return;
@@ -123,7 +222,7 @@ function renderHomeShelf() {
   });
 }
 
-// Polling otomatis untuk memastikan file arka.js terdeteksi jika ada delay
+// Polling memastikan data cerita dari file terpisah terdeteksi
 let checkCount = 0;
 const storyPoller = setInterval(() => {
   checkCount++;
@@ -133,13 +232,12 @@ const storyPoller = setInterval(() => {
   }
 }, 150);
 
-// 6. BUKA CERITA & KEMBALI KE BERANDA
+// 6. BUKA CERITA & KEMBALI
 function openStory(story) {
   currentStory = story;
   currentPage = 0;
   inQuizMode = false;
 
-  // Lakukan preloading semua gambar buku ini ke RAM
   preloadStoryImages(story);
 
   homeView.style.display = 'none';
@@ -148,7 +246,7 @@ function openStory(story) {
   navControls.style.display = 'flex';
   quizView.style.display = 'none';
 
-  renderStoryPageContent(currentPage);
+  renderStoryPageContent(currentPage, true);
 }
 
 function returnToHome() {
@@ -165,21 +263,30 @@ function returnToHome() {
 if (btnBackHome) btnBackHome.onclick = returnToHome;
 if (btnFinishToHome) btnFinishToHome.onclick = returnToHome;
 
-// 7. RENDER ISI KONTEN (Teks & Gambar)
-function renderStoryPageContent(index) {
+// 7. RENDER KONTEN HALAMAN CERITA DENGAN AUDIO AUTO-PLAY
+function renderStoryPageContent(index, autoPlayAudio = false) {
   if (!currentStory || !currentStory.pages || !currentStory.pages[index]) return;
   const pageData = currentStory.pages[index];
 
-  // Matikan audio sebelumnya
+  // Hentikan suara sebelumnya
   audioElement.pause();
   btnPageAudio.classList.remove('playing');
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
-  // Pasang gambar langsung dari cache memori
+  // Pasang gambar & sumber audio
   storyImage.src = pageData.image;
   audioElement.src = pageData.audio || '';
 
-  // Render teks per kata
+  // Putar narasi otomatis bila dipicu oleh aksi pengguna
+  if (autoPlayAudio && pageData.audio) {
+    audioElement.play().then(() => {
+      btnPageAudio.classList.add('playing');
+    }).catch(() => {
+      // Kebijakan browser mencegah autoplay di beberapa kondisi awal
+    });
+  }
+
+  // Render teks perkata
   textFlow.innerHTML = '';
   const words = (pageData.text || '').split(' ');
   words.forEach(word => {
@@ -197,28 +304,28 @@ function renderStoryPageContent(index) {
   progressFill.style.width = percent + '%';
   pageIndicator.textContent = `${index + 1}/${totalPages}`;
 
-  // Perbarui status tombol
+  // Perbarui tombol navigasi
   btnPrev.disabled = (index === 0);
   const isLastPage = (index === totalPages - 1);
   const hasQuiz = (currentStory.quiz && currentStory.quiz.length > 0);
   btnNext.textContent = isLastPage ? (hasQuiz ? 'Ikuti Kuis 🎯' : 'Selesai 🏁') : 'Balik Halaman';
 }
 
-// 8. SINKRONISASI PRESISI BALIK HALAMAN 3D (Gambar Berganti Tepat di Sudut 90 Derajat)
+// 8. SINKRONISASI BALIK HALAMAN 3D + BUNYI EFEK + AUDIO NARASI
 function turnPage(direction) {
   if (isFlipping) return;
   isFlipping = true;
 
+  // Bunyikan efek kertas secara instan
   playPageTurnSound();
 
   const outClass = (direction === 'next') ? 'flip-out-left' : 'flip-out-right';
   const inClass = (direction === 'next') ? 'flip-in-right' : 'flip-in-left';
 
-  // Mulai putaran fase 1 (0 ke 90 derajat)
   pageSheet.classList.remove('flip-in-right', 'flip-in-left');
   pageSheet.classList.add(outClass);
 
-  // Tepat saat lembaran tegak lurus tipis (180ms), ganti gambar & teks
+  // Ganti gambar dan narasi tepat di titik tengah rotasi (180ms)
   setTimeout(() => {
     if (direction === 'next') {
       currentPage++;
@@ -226,9 +333,9 @@ function turnPage(direction) {
       currentPage--;
     }
 
-    renderStoryPageContent(currentPage);
+    // Render konten baru dan putar narasi halamannya
+    renderStoryPageContent(currentPage, true);
 
-    // Lanjutkan putaran fase 2 (90 ke 0 derajat dengan konten baru yang sudah terpasang)
     pageSheet.classList.remove(outClass);
     pageSheet.classList.add(inClass);
 
@@ -239,7 +346,7 @@ function turnPage(direction) {
   }, 180);
 }
 
-// 9. TEXT-TO-SPEECH SUARA PER KATA
+// 9. UCAPKAN PER KATA (TTS)
 function speakWord(word, element) {
   if (!('speechSynthesis' in window)) return;
 
@@ -259,7 +366,7 @@ function speakWord(word, element) {
   window.speechSynthesis.speak(utterance);
 }
 
-// 10. PEMUTAR AUDIO SATU HALAMAN
+// 10. PEMUTAR AUDIO TOMBOL SPEAKER
 btnPageAudio.onclick = () => {
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
@@ -267,7 +374,7 @@ btnPageAudio.onclick = () => {
     audioElement.play().then(() => {
       btnPageAudio.classList.add('playing');
     }).catch(err => {
-      console.warn("File audio belum disematkan pada path:", audioElement.src);
+      console.warn("File audio belum dapat diputar:", err);
     });
   } else {
     audioElement.pause();
@@ -279,7 +386,7 @@ audioElement.onended = () => {
   btnPageAudio.classList.remove('playing');
 };
 
-// 11. GESTURE SWIPE TOUCH (LAYAR HP & TABLET)
+// 11. DETEKSI GESTURE SWIPE
 let touchStartX = 0;
 let touchStartY = 0;
 
@@ -321,11 +428,12 @@ btnPrev.onclick = () => {
   if (currentPage > 0) turnPage('prev');
 };
 
-// 12. SISTEM KUIS PEMAHAMAN BACAAN
+// 12. SISTEM KUIS DENGAN SFX & TAMPILAN SKOR LENGKAP
 function startQuiz() {
   inQuizMode = true;
   currentQuizIndex = 0;
   quizScore = 0;
+  correctCount = 0;
 
   audioElement.pause();
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -361,9 +469,12 @@ function checkQuizAnswer(selectedIdx, correctIdx, btnElement) {
   const pointsPerQuestion = 100 / currentStory.quiz.length;
 
   if (selectedIdx === correctIdx) {
+    playCorrectSound(); // SFX Benar
     btnElement.classList.add('correct');
     quizScore += pointsPerQuestion;
+    correctCount++;
   } else {
+    playWrongSound(); // SFX Salah
     btnElement.classList.add('wrong');
     allOptButtons[correctIdx].classList.add('correct');
   }
@@ -375,7 +486,7 @@ function checkQuizAnswer(selectedIdx, correctIdx, btnElement) {
     } else {
       showQuizResult();
     }
-  }, 1100);
+  }, 1200);
 }
 
 function showQuizResult() {
@@ -383,18 +494,31 @@ function showQuizResult() {
   quizResult.style.display = 'flex';
 
   const finalScore = Math.round(quizScore);
+  const totalQuestions = currentStory.quiz.length;
+
+  // Bunyikan fanfare perayaan
+  playFanfareSound();
+
   resultScore.textContent = `${finalScore} Poin`;
 
+  let stars = "⭐";
+  let message = "Ayo kita baca lagi cerita ini bersama-sama agar lebih paham!";
+
   if (finalScore >= 90) {
-    starsBox.textContent = "⭐⭐⭐";
-    resultMsg.textContent = "Luar biasa! Kamu memahami seluruh cerita dengan sangat baik!";
+    stars = "⭐⭐⭐";
+    message = "Luar biasa! Kamu menyimak seluruh cerita dan pesan moral dengan sempurna!";
   } else if (finalScore >= 60) {
-    starsBox.textContent = "⭐⭐";
-    resultMsg.textContent = "Bagus sekali! Sebagian besar pertanyaan berhasil kamu jawab.";
-  } else {
-    starsBox.textContent = "⭐";
-    resultMsg.textContent = "Tetap semangat! Ayo kita baca kembali cerita ini bersama-sama.";
+    stars = "⭐⭐";
+    message = "Bagus sekali! Hampir seluruh pertanyaan berhasil kamu jawab dengan benar.";
   }
+
+  starsBox.textContent = stars;
+  resultMsg.innerHTML = `
+    <strong>${message}</strong><br>
+    <span style="font-size: 0.9rem; opacity: 0.8; display: inline-block; margin-top: 6px;">
+      Jawaban Benar: ${correctCount} dari ${totalQuestions} Soal
+    </span>
+  `;
 }
 
 if (btnRestartStory) {
@@ -404,7 +528,7 @@ if (btnRestartStory) {
     quizView.style.display = 'none';
     bookStage.style.display = 'flex';
     navControls.style.display = 'flex';
-    renderStoryPageContent(currentPage);
+    renderStoryPageContent(currentPage, true);
   };
 }
 
