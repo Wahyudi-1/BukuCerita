@@ -4,7 +4,7 @@ window.STORIES_DATABASE.push({
   id: "aisyah-merapikan",
   title: "Kebiasaan Merapikan Aisyah",
   category: "Fase Fondasi / A",
-  cover: "./images/aisyah/01_compressed.jpg",
+  cover: "./images/aisyah/Aisyah 01_compressed.jpg",
   description: "Kisah aisyah yang selalu merapikan barang-barang yang selesai digunakan.",
   pages: [
   {
