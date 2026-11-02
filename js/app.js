@@ -59,10 +59,8 @@ const btnHapticToggleHome = document.getElementById('btnHapticToggleHome');
 const btnHapticToggleReader = document.getElementById('btnHapticToggleReader');
 const confettiCanvas = document.getElementById('confettiCanvas');
 
-// Elemen PWA & Status Jaringan
+// Elemen PWA Banner Tunggal
 const networkStatus = document.getElementById('networkStatus');
-const btnInstallApp = document.getElementById('btnInstallApp');
-const btnInstallReader = document.getElementById('btnInstallReader');
 const pwaInstallBanner = document.getElementById('pwaInstallBanner');
 const btnInstallPwa = document.getElementById('btnInstallPwa');
 const btnCloseInstallBanner = document.getElementById('btnCloseInstallBanner');
@@ -562,65 +560,58 @@ function updateNetworkStatus() {
 window.addEventListener('online', () => { updateNetworkStatus(); triggerHaptic('tap'); });
 window.addEventListener('offline', () => { updateNetworkStatus(); triggerHaptic('wrong'); });
 
-// 21. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT)
+// ================================================================
+// 21. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT PURE)
+// ================================================================
 let deferredPrompt = null;
 
-// Fungsi untuk mengecek apakah aplikasi sudah dibuka di mode "Standalone" (Sudah Terinstal)
-function isRunningStandalone() {
-  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-}
+// Sembunyikan banner sejak awal. Hanya muncul saat sistem siap 1-Klik.
+if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
 
-// Fungsi untuk menampilkan atau menyembunyikan tombol Instal
-function checkAndShowInstallButtons() {
-  const displayStyle = isRunningStandalone() ? 'none' : 'flex';
-  if (btnInstallApp) btnInstallApp.style.display = displayStyle;
-  if (btnInstallReader) btnInstallReader.style.display = displayStyle;
-  if (pwaInstallBanner) pwaInstallBanner.style.display = displayStyle;
-}
-
-// Simpan event instalasi dari Chrome saat syarat PWA terpenuhi
+// Event ini HANYA ditembakkan oleh Chrome/Android saat syarat PWA (Icon, manifest, SW) komplit.
 window.addEventListener('beforeinstallprompt', (e) => {
+  // Cegah browser menampilkan mini-infobar instalasi bawaannya
   e.preventDefault();
+  
+  // Tangkap event bawaan sistem ke variabel
   deferredPrompt = e;
-  checkAndShowInstallButtons(); // Pastikan tombol aktif jika prompt siap
+
+  // BARU TAMPILKAN BANNER karena sistem dijamin 100% siap untuk 1-Klik
+  if (pwaInstallBanner) pwaInstallBanner.style.display = 'flex';
 });
 
-// Eksekusi Panggilan Dialog Bawaan Sistem HP (1-Klik)
+// Fungsi Eksekusi
 async function executePwaInstall() {
   triggerHaptic('tap');
 
-  if (deferredPrompt) {
-    // 1-KLIK: Memicu dialog pop-up resmi dari bawah layar HP
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      // Sembunyikan tombol jika pengguna setuju menginstal
-      if (btnInstallApp) btnInstallApp.style.display = 'none';
-      if (btnInstallReader) btnInstallReader.style.display = 'none';
-      if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
-    }
-    // Kosongkan agar tidak terpanggil ulang secara ganda
-    deferredPrompt = null;
-  } else {
-    // Fallback: Jika diklik tetapi Chrome belum merespons / menolak popup
-    alert("Sistem peramban sedang memuat komponen PWA.\n\nJika tetap tidak muncul, silakan tekan ikon menu (Titik Tiga ⋮) di sudut browser, lalu pilih 'Tambahkan ke Layar Utama'.");
+  if (!deferredPrompt) return; // Jika kosong, batalkan klik (aman dari error alert manual)
+
+  // 1-CLICK: Langsung panggil popup dialog "Instal Aplikasi" resmi dari bawah layar HP
+  deferredPrompt.prompt();
+
+  // Tunggu siswa menekan "Instal" atau "Batal"
+  const { outcome } = await deferredPrompt.userChoice;
+  
+  if (outcome === 'accepted') {
+    // Sembunyikan banner jika siswa setuju memasang
+    if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
   }
+
+  // Kosongkan agar tidak terpanggil ulang secara paksa
+  deferredPrompt = null;
 }
 
-// Hubungkan semua tombol Instalasi ke fungsi eksekusi 1-Klik
-if (btnInstallApp) btnInstallApp.onclick = executePwaInstall;
-if (btnInstallReader) btnInstallReader.onclick = executePwaInstall;
 if (btnInstallPwa) btnInstallPwa.onclick = executePwaInstall;
 
 if (btnCloseInstallBanner) {
-  btnCloseInstallBanner.onclick = () => { triggerHaptic('tap'); pwaInstallBanner.style.display = 'none'; };
+  btnCloseInstallBanner.onclick = () => { 
+    triggerHaptic('tap'); 
+    pwaInstallBanner.style.display = 'none'; 
+  };
 }
 
-// Hilangkan semua tombol jika terdeteksi bahwa aplikasi baru saja sukses terinstal
+// Hilangkan banner secara otomatis bila Chrome mengabari bahwa web sudah terinstal
 window.addEventListener('appinstalled', () => {
-  if (btnInstallApp) btnInstallApp.style.display = 'none';
-  if (btnInstallReader) btnInstallReader.style.display = 'none';
   if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
   deferredPrompt = null;
   triggerHaptic('celebrate');
@@ -632,5 +623,4 @@ window.addEventListener('DOMContentLoaded', () => {
   updateAutoPlayUI();
   updateHapticUI();
   updateNetworkStatus();
-  checkAndShowInstallButtons(); // Pastikan tombol tampil di awal jika belum diinstal
 });
