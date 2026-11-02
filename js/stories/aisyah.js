@@ -1,11 +1,11 @@
 window.STORIES_DATABASE = window.STORIES_DATABASE || [];
 
 window.STORIES_DATABASE.push({
-  id: "arka-berdoa",
-  title: "Kebiasaan Baik Arka",
+  id: "aisyah-merapikan",
+  title: "Kebiasaan Merapikan Aisyah",
   category: "Fase Fondasi / A",
-  cover: "./images/arka/01.jpg",
-  description: "Kisah Arka yang selalu memulai dan menutup hari dengan doa serta rasa syukur.",
+  cover: "./images/aisyah/01_compressed.jpg",
+  description: "Kisah aisyah yang selalu merapikan barang-barang yang selesai digunakan.",
   pages: [
   {
     page: 1,
@@ -127,4 +127,5 @@ window.STORIES_DATABASE.push({
     image: "./images/Aisyah 20_compressed.jpg",
     audio: "./audio/Aisyah 20.mp3"
   }
-];
+]
+});
