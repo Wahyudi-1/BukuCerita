@@ -28,6 +28,7 @@ body.dark-mode {
   --option-bg: #27354a;
 }
 
+/* Selektor Universal (Reset Dasar) */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -54,7 +55,7 @@ body {
   flex-direction: column;
 }
 
-/* ================= ADAPTASI TABLET LANDSCAPE ================= */
+/* ================= ADAPTASI TABLET LANDSCAPE & DESKTOP ================= */
 @media (min-width: 768px) and (orientation: landscape), (min-width: 900px) {
   body {
     padding: 16px 24px;
@@ -91,7 +92,7 @@ body {
   gap: 14px;
 }
 
-/* Banner PWA */
+/* ================= BANNER INSTALASI PWA ================= */
 .pwa-install-banner {
   background: linear-gradient(135deg, #58cc02, #22c55e);
   color: #ffffff;
@@ -137,7 +138,7 @@ body {
   padding: 4px;
 }
 
-/* Beranda */
+/* ================= BERANDA (RAK BUKU) ================= */
 .home-header {
   display: flex;
   justify-content: space-between;
@@ -147,7 +148,87 @@ body {
 
 .header-title h1 { font-size: 1.45rem; font-weight: 800; color: var(--text); }
 .header-title p { font-size: 0.9rem; color: var(--text-sub); margin-top: 2px; }
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Indikator Online/Offline */
+.network-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.network-badge.online {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+.network-badge.online .status-dot {
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+}
+
+.network-badge.offline {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  animation: pulseOffline 1.2s infinite alternate;
+}
+.network-badge.offline .status-dot {
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
+}
+
+@keyframes pulseOffline {
+  from { opacity: 0.85; }
+  to { opacity: 1; }
+}
+
+body.dark-mode .network-badge.online {
+  background: #064e3b;
+  color: #6ee7b7;
+  border-color: #047857;
+}
+
+body.dark-mode .network-badge.offline {
+  background: #451a1a;
+  color: #fca5a5;
+  border-color: #7f1d1d;
+}
+
 .header-tools { display: flex; align-items: center; gap: 6px; }
+
+/* Tombol Instalasi di Header */
+.btn-install-tool {
+  background: #ecfdf5 !important;
+  color: #059669 !important;
+  border-color: #6ee7b7 !important;
+  box-shadow: 0 3px 0 #10b981 !important;
+  animation: bounceInstall 1.5s infinite;
+}
+
+@keyframes bounceInstall {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
 
 .stories-grid { display: flex; flex-direction: column; gap: 14px; }
 
@@ -202,7 +283,7 @@ body.dark-mode .story-history-badge {
 .story-title { font-size: 1.15rem; font-weight: 800; color: var(--text); }
 .story-desc { font-size: 0.85rem; color: var(--text-sub); line-height: 1.35; }
 
-/* Pembaca Buku */
+/* ================= PEMBACA BUKU (READER) ================= */
 .top-bar { display: flex; align-items: center; gap: 8px; }
 
 .btn-tool {
@@ -222,7 +303,7 @@ body.dark-mode .story-history-badge {
 
 .btn-tool:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--border); }
 
-/* Status Sakelar */
+/* Status Sakelar Nonaktif */
 .btn-tool.autoplay-off, .btn-tool.haptic-off {
   background: #fee2e2;
   color: #ef4444;
@@ -284,6 +365,7 @@ body.dark-mode .btn-tool.autoplay-off, body.dark-mode .btn-tool.haptic-off {
   position: relative;
 }
 
+/* Animasi Balik Halaman 3D */
 .flip-out-left { animation: flipOutLeft 0.18s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards; }
 .flip-out-right { animation: flipOutRight 0.18s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards; }
 .flip-in-right { animation: flipInRight 0.20s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
@@ -360,7 +442,7 @@ body.dark-mode .btn-tool.autoplay-off, body.dark-mode .btn-tool.haptic-off {
 .btn-action-next:active:not(:disabled) { box-shadow: 0 1px 0 var(--primary-border); }
 .btn-action:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; transform: none; }
 
-/* Kuis */
+/* ================= KUIS PEMAHAMAN ================= */
 .quiz-view { display: flex; flex-direction: column; gap: 16px; background: var(--paper); border: 2px solid var(--border); border-radius: 24px; padding: 20px; box-shadow: 0 8px 0 var(--card-shadow); }
 .quiz-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 12px; }
 .quiz-header h2 { font-size: 1.25rem; font-weight: 800; color: var(--primary); }
@@ -394,4 +476,5 @@ body.dark-mode .btn-tool.autoplay-off, body.dark-mode .btn-tool.haptic-off {
 .result-msg { font-size: 1.05rem; font-weight: 700; color: var(--text-sub); line-height: 1.5; }
 .quiz-result-actions { display: flex; gap: 10px; width: 100%; margin-top: 6px; }
 
+/* Overlay Konfeti */
 #confettiCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 99999; display: none; }
