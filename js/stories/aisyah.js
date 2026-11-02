@@ -3,6 +3,7 @@ window.STORIES_DATABASE = window.STORIES_DATABASE || [];
 window.STORIES_DATABASE.push({
   id: "aisyah-merapikan",
   title: "Kebiasaan Merapikan Aisyah",
+  lang: "id-ID", // Otomatis mengaktifkan pelafalan bahasa Indonesia
   category: "Fase Fondasi / A",
   cover: "./images/aisyah/Aisyah%2001_compressed.jpg",
   description: "Kisah Aisyah yang selalu merapikan barang-barang yang selesai digunakan.",
