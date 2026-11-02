@@ -23,8 +23,9 @@
 
   <div class="app-container">
 
-    <!-- Banner Instalasi PWA (Otomatis Muncul) -->
-    <div id="pwaInstallBanner" class="pwa-install-banner">
+    <!-- ================= SATU-SATUNYA TOMBOL INSTAL PWA ================= -->
+    <!-- Akan otomatis muncul jika sistem operasi (Android/Chrome) sudah siap 1-Klik -->
+    <div id="pwaInstallBanner" class="pwa-install-banner" style="display: none;">
       <div class="pwa-banner-content">
         <span class="pwa-icon">📲</span>
         <div class="pwa-text">
@@ -52,8 +53,6 @@
           <p>Pilih buku cerita bergambar yang ingin kamu baca:</p>
         </div>
         <div class="header-tools">
-          <!-- Tombol Instal Aplikasi (Otomatis Muncul) -->
-          <button class="btn-tool btn-install-tool" id="btnInstallApp" title="Instal Aplikasi Langsung">📥</button>
           <button class="btn-tool" id="btnHapticToggleHome" title="Efek Getar (On/Off)">📳</button>
           <button class="btn-tool" id="btnResetHistory" title="Reset Riwayat Bintang & Nilai">🗑️</button>
           <button class="btn-tool" id="btnFullScreenHome" title="Layar Penuh (Full Screen)">⛶</button>
@@ -70,7 +69,6 @@
       <!-- Top Navigation Bar -->
       <div class="top-bar">
         <button class="btn-tool" id="btnBackHome" title="Kembali ke Beranda">🏠</button>
-        <button class="btn-tool btn-install-tool" id="btnInstallReader" title="Instal Aplikasi Langsung">📥</button>
         <button class="btn-tool" id="btnAutoPlayToggle" title="Narasi Otomatis (On/Off)">📢</button>
         <button class="btn-tool" id="btnHapticToggleReader" title="Efek Getar (On/Off)">📳</button>
         <button class="btn-tool" id="btnFullScreenReader" title="Layar Penuh (Full Screen)">⛶</button>
