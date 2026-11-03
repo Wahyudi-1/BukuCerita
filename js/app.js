@@ -1,7 +1,8 @@
 /**
  * ================================================================
  * APP.JS - MESIN BUKU CERITA INTERAKTIF TERLENGKAP
- * (AUDIO ENGINE, KARAOKE SYNC, THEMED HIGHLIGHT, BILINGUAL, PWA)
+ * (OFFLINE DOWNLOADER, RANDOM QUESTION BANK, SHUFFLED OPTIONS,
+ *  KARAOKE SYNC, THEMED HIGHLIGHT, BILINGUAL MODE, 1-CLICK PWA)
  * ================================================================
  */
 
@@ -13,18 +14,26 @@ let inQuizMode = false;
 let currentQuizIndex = 0;
 let quizScore = 0;
 let correctCount = 0;
+
+// Penampung Bank Soal Acak & Pelacak Karaoke
+let activeQuizQuestions = []; // Soal terpilih hasil acak
+let currentWordElements = [];
+let wordTimingThresholds = [];
+
 const preloadedImages = {};
 const preloadedAudios = {};
 
-// Status preferensi pengguna & fitur baru
+// Nama cache khusus untuk media cerita offline mandiri
+const OFFLINE_MEDIA_CACHE = 'buku-cerita-offline-media';
+
+// Jumlah soal yang akan ditampilkan ke siswa dari total bank soal
+const QUIZ_QUESTION_COUNT = 4;
+
+// Status preferensi pengguna
 let isAutoPlay = localStorage.getItem('storybook_autoplay') !== 'false';
 let isHapticEnabled = localStorage.getItem('storybook_haptic') !== 'false';
-let currentStoryLang = 'id'; // Bahasa aktif buku: 'en' atau 'id'
-let ttsSpeed = 0.85; // Kecepatan TTS: 0.85 (Normal 🐇) atau 0.55 (Lambat 🐢)
-
-// Penampung pelacak linimasa kata untuk karaoke
-let currentWordElements = [];
-let wordTimingThresholds = [];
+let currentStoryLang = 'id';
+let ttsSpeed = 0.85;
 
 // 2. REFERENSI ELEMEN DOM
 const homeView = document.getElementById('homeView');
@@ -44,7 +53,6 @@ const btnPageAudio = document.getElementById('btnPageAudio');
 const audioElement = document.getElementById('audioElement');
 const navControls = document.getElementById('navControls');
 
-// Referensi Tombol Fitur Dwibahasa & Kecepatan Suara
 const btnLangToggle = document.getElementById('btnLangToggle');
 const btnSpeedToggle = document.getElementById('btnSpeedToggle');
 
@@ -70,7 +78,6 @@ const btnHapticToggleHome = document.getElementById('btnHapticToggleHome');
 const btnHapticToggleReader = document.getElementById('btnHapticToggleReader');
 const confettiCanvas = document.getElementById('confettiCanvas');
 
-// Elemen PWA Banner Tunggal
 const networkStatus = document.getElementById('networkStatus');
 const pwaInstallBanner = document.getElementById('pwaInstallBanner');
 const btnInstallPwa = document.getElementById('btnInstallPwa');
@@ -266,7 +273,7 @@ function launchConfetti() {
   renderConfetti();
 }
 
-// 7. PRELOADING RAM (GAMBAR & AUDIO)
+// 7. PRELOADING RAM CEPAT
 function preloadStoryImages(story) {
   if (!story || !story.pages) return;
   story.pages.forEach(p => {
@@ -287,7 +294,89 @@ function preloadStoryAudios(story) {
   });
 }
 
-// 8. RENDER RAK BUKU DI BERANDA
+// ================================================================
+// 8. MESIN PENGUNDUH MEDIA OFFLINE MANDIRI (CACHE STORAGE API)
+// ================================================================
+
+// Ekstraksi seluruh URL berkas fisik media (gambar & audio) dari suatu cerita
+function extractStoryMediaUrls(story) {
+  const urlSet = new Set();
+  if (story.cover) urlSet.add(story.cover);
+
+  if (story.pages && Array.isArray(story.pages)) {
+    story.pages.forEach(page => {
+      if (page.image) urlSet.add(page.image);
+      if (page.audio) urlSet.add(page.audio);
+      if (page.audio_id) urlSet.add(page.audio_id);
+    });
+  }
+  return Array.from(urlSet);
+}
+
+// Memeriksa apakah seluruh berkas cerita sudah tersimpan di Cache
+async function checkStoryOfflineStatus(story) {
+  if (!('caches' in window)) return false;
+  try {
+    const cache = await caches.open(OFFLINE_MEDIA_CACHE);
+    const urls = extractStoryMediaUrls(story);
+    if (urls.length === 0) return false;
+
+    for (const url of urls) {
+      const match = await cache.match(url);
+      if (!match) return false;
+    }
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+// Mengunduh seluruh berkas gambar dan audio ke Cache Storage
+async function downloadStoryMediaForOffline(story, btnElement) {
+  if (!('caches' in window)) {
+    alert("Peramban ini tidak mendukung penyimpanan offline Cache Storage.");
+    return;
+  }
+
+  if (!navigator.onLine) {
+    alert("Koneksi internet diperlukan saat pertama kali mengunduh cerita ini.");
+    return;
+  }
+
+  const urls = extractStoryMediaUrls(story);
+  if (urls.length === 0) return;
+
+  btnElement.disabled = true;
+  btnElement.className = 'btn-offline-status downloading';
+
+  try {
+    const cache = await caches.open(OFFLINE_MEDIA_CACHE);
+    let completed = 0;
+
+    for (const url of urls) {
+      btnElement.textContent = `⏳ ${Math.round((completed / urls.length) * 100)}%`;
+      const response = await fetch(url, { cache: 'no-cache' });
+      if (response.ok) {
+        await cache.put(url, response);
+        completed++;
+      }
+    }
+
+    triggerHaptic('celebrate');
+    btnElement.className = 'btn-offline-status cached';
+    btnElement.innerHTML = '✅ Siap Offline';
+    btnElement.title = 'Seluruh gambar dan audio cerita ini sudah tersimpan dan dapat dibaca tanpa internet.';
+    btnElement.disabled = false;
+  } catch (err) {
+    console.error("Gagal mengunduh aset cerita:", err);
+    triggerHaptic('wrong');
+    btnElement.className = 'btn-offline-status';
+    btnElement.innerHTML = '⚠️ Gagal. Unduh Ulang';
+    btnElement.disabled = false;
+  }
+}
+
+// 9. RENDER RAK BUKU DI BERANDA (DILENGKAPI TOMBOL STATUS OFFLINE)
 function renderHomeShelf() {
   if (!storiesGrid) return;
   const listCerita = window.STORIES_DATABASE || [];
@@ -309,13 +398,47 @@ function renderHomeShelf() {
     card.innerHTML = `
       <img class="story-cover-thumb" src="${story.cover || (story.pages[0] ? story.pages[0].image : '')}" alt="${story.title}" onerror="this.src='https://placehold.co/100x130/58cc02/ffffff?text=Buku';">
       <div class="story-info">
-        <div class="story-meta-row"><span class="story-badge">${story.category || 'Cerita Bergambar'}</span>${recordBadge}</div>
+        <div class="story-meta-row">
+          <span class="story-badge">${story.category || 'Cerita Bergambar'}</span>
+          ${recordBadge}
+        </div>
         <div class="story-title">${story.title}</div>
         <div class="story-desc">${story.description || ''}</div>
+        <div class="story-card-actions">
+          <button class="btn-offline-status" id="btnOffline_${story.id}">
+            🔍 Cek Offline...
+          </button>
+        </div>
       </div>
     `;
-    card.onclick = () => openStory(story);
+
+    // Klik kartu utama membuka cerita
+    card.onclick = (e) => {
+      if (e.target.closest('.btn-offline-status')) return; // Cegah membuka buku saat tombol unduh ditekan
+      openStory(story);
+    };
+
     storiesGrid.appendChild(card);
+
+    // Cek status ketersediaan offline secara asinkron
+    const btnOffline = card.querySelector(`#btnOffline_${story.id}`);
+    checkStoryOfflineStatus(story).then(isCached => {
+      if (isCached) {
+        btnOffline.className = 'btn-offline-status cached';
+        btnOffline.innerHTML = '✅ Siap Offline';
+        btnOffline.title = 'Cerita ini sudah dapat dibaca tanpa sambungan internet.';
+      } else {
+        btnOffline.className = 'btn-offline-status';
+        btnOffline.innerHTML = '📥 Unduh Offline';
+        btnOffline.title = 'Unduh semua audio & gambar agar cerita ini bisa dibaca tanpa internet.';
+      }
+
+      btnOffline.onclick = (e) => {
+        e.stopPropagation();
+        triggerHaptic('tap');
+        downloadStoryMediaForOffline(story, btnOffline);
+      };
+    });
   });
 }
 
@@ -328,7 +451,7 @@ const storyPoller = setInterval(() => {
   }
 }, 150);
 
-// 9. SAKELAR NARASI OTOMATIS
+// 10. SAKELAR NARASI OTOMATIS
 function updateAutoPlayUI() {
   if (!btnAutoPlayToggle) return;
   if (isAutoPlay) {
@@ -348,7 +471,7 @@ if (btnAutoPlayToggle) {
   };
 }
 
-// 10. KONTROL LAYAR PENUH
+// 11. KONTROL LAYAR PENUH
 function toggleFullScreen() {
   triggerHaptic('tap');
   if (!document.fullscreenElement && !document.webkitFullscreenElement) {
@@ -364,7 +487,7 @@ function toggleFullScreen() {
 if (btnFullScreenHome) btnFullScreenHome.onclick = toggleFullScreen;
 if (btnFullScreenReader) btnFullScreenReader.onclick = toggleFullScreen;
 
-// 11. RESET RIWAYAT KUIS
+// 12. RESET RIWAYAT KUIS
 if (btnResetHistory) {
   btnResetHistory.onclick = () => {
     triggerHaptic('tap');
@@ -375,7 +498,7 @@ if (btnResetHistory) {
   };
 }
 
-// 12. FITUR PERALIHAN BAHASA & KECEPATAN TTS
+// 13. FITUR PERALIHAN BAHASA & KECEPATAN TTS
 function updateLangToggleUI() {
   if (!btnLangToggle) return;
   const isBilingual = currentStory && currentStory.pages && currentStory.pages.some(p => p.text_id);
@@ -416,13 +539,13 @@ if (btnSpeedToggle) {
   };
 }
 
-// 13. BUKA CERITA & KEMBALI
+// 14. BUKA CERITA & KEMBALI
 function openStory(story) {
   currentStory = story; 
   currentPage = 0; 
   inQuizMode = false;
   
-  // Terapkan Tema Warna Highlight Cerita ke Variabel CSS
+  // Terapkan Tema Warna Cerita
   const theme = story.highlightTheme || {
     bg: "linear-gradient(135deg, #fef08a, #fde047)",
     text: "#854d0e",
@@ -435,7 +558,6 @@ function openStory(story) {
   document.documentElement.style.setProperty('--story-hl-border', theme.border);
   document.documentElement.style.setProperty('--story-hl-shadow', theme.shadow);
 
-  // Tentukan bahasa awal cerita
   currentStoryLang = story.defaultLang || (story.lang && story.lang.startsWith('en') ? 'en' : 'id');
 
   if (!document.fullscreenElement) {
@@ -478,7 +600,7 @@ function returnToHome() {
 if (btnBackHome) btnBackHome.onclick = returnToHome;
 if (btnFinishToHome) btnFinishToHome.onclick = returnToHome;
 
-// 14. RENDER KONTEN BUKU (DENGAN BOBOT KARAKTER & TRACKING ELEMEN KATA)
+// 15. RENDER KONTEN BUKU
 function renderStoryPageContent(index, autoPlayAudio = false) {
   if (!currentStory || !currentStory.pages || !currentStory.pages[index]) return;
   const pageData = currentStory.pages[index];
@@ -488,13 +610,11 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
   btnPageAudio.classList.remove('playing');
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
-  // Reset pelacak karaoke halaman
   currentWordElements = [];
   wordTimingThresholds = [];
 
   storyImage.src = pageData.image;
 
-  // Pilih berkas audio narasi sesuai bahasa aktif
   const activeAudio = (currentStoryLang === 'id' && pageData.audio_id) ? pageData.audio_id : pageData.audio;
 
   if (activeAudio) {
@@ -510,13 +630,11 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
     audioElement.removeAttribute('src');
   }
 
-  // Pilih teks bacaan sesuai bahasa aktif
   const activeText = (currentStoryLang === 'id' && pageData.text_id) ? pageData.text_id : (pageData.text || '');
 
   textFlow.innerHTML = '';
   const words = activeText.split(' ').filter(w => w.trim().length > 0);
 
-  // Kalkulasi estimasi bobot durasi per kata berdasarkan jumlah karakter
   let totalChars = 0;
   const charCounts = words.map(w => {
     const cleanLen = w.replace(/[^a-zA-Z0-9]/g, '').length || 1;
@@ -527,7 +645,7 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
   let cumulativeChars = 0;
   wordTimingThresholds = charCounts.map(count => {
     cumulativeChars += count;
-    return cumulativeChars / totalChars; // Rentang nilai linimasa 0.0 sampai 1.0
+    return cumulativeChars / totalChars;
   });
 
   words.forEach(word => {
@@ -540,16 +658,13 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
     span.className = 'clickable-word'; 
     span.textContent = word;
     
-    // Simpan referensi span untuk pemantau linimasa karaoke
     currentWordElements.push(span);
 
-    // Tampilkan arti jika ada di kamus vocab cerita
     const hasTranslation = currentStoryLang === 'en' && pageData.vocab && pageData.vocab[cleanKey];
 
     span.onclick = () => {
       speakWord(word, span);
 
-      // Munculkan balon tooltip arti kata
       if (hasTranslation) {
         document.querySelectorAll('.vocab-tooltip').forEach(t => t.remove());
 
@@ -576,7 +691,7 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
   btnNext.textContent = isLastPage ? (hasQuiz ? 'Ikuti Kuis 🎯' : 'Selesai 🏁') : 'Balik Halaman';
 }
 
-// 15. ANIMASI BALIK HALAMAN SINKRON
+// 16. ANIMASI BALIK HALAMAN SINKRON
 function turnPage(direction) {
   if (isFlipping) return;
   isFlipping = true;
@@ -597,7 +712,7 @@ function turnPage(direction) {
   }, 180);
 }
 
-// 16. SUARA KATA (TTS MANUAL DENGAN SOROT KATA BERCAHAYA)
+// 17. SUARA KATA (TTS DENGAN ANIMASI SOROT)
 function speakWord(word, element) {
   if (!('speechSynthesis' in window)) return;
   triggerHaptic('tap'); 
@@ -606,7 +721,6 @@ function speakWord(word, element) {
   window.speechSynthesis.cancel();
   clearKaraokeHighlight();
 
-  // Hapus kelas aktif dari kata sebelumnya
   document.querySelectorAll('.clickable-word.speaking').forEach(el => el.classList.remove('speaking'));
 
   const cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
@@ -631,7 +745,7 @@ function speakWord(word, element) {
   window.speechSynthesis.speak(utterance);
 }
 
-// 17. TOMBOL SPEAKER MANUAL & SINKRONISASI KARAOKE NARASI AUDIO
+// 18. SPEAKER MANUAL & SINKRONISASI KARAOKE NARASI
 btnPageAudio.onclick = () => {
   triggerHaptic('tap');
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -643,7 +757,6 @@ btnPageAudio.onclick = () => {
   }
 };
 
-// Pemantau Linimasa Narasi Audio untuk Mengaktifkan Sorotan Kata Berurutan
 audioElement.addEventListener('timeupdate', () => {
   if (!audioElement.duration || currentWordElements.length === 0) return;
 
@@ -673,7 +786,7 @@ audioElement.addEventListener('ended', () => {
   btnPageAudio.classList.remove('playing');
 });
 
-// 18. GESTURE SWIPE TOUCH
+// 19. GESTURE SWIPE TOUCH
 let touchStartX = 0; let touchStartY = 0;
 bookStage.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }, { passive: true });
 bookStage.addEventListener('touchend', (e) => {
@@ -694,59 +807,163 @@ function handleNextAction() {
 btnNext.onclick = handleNextAction;
 btnPrev.onclick = () => { if (currentPage > 0) turnPage('prev'); };
 
-// 19. KUIS PEMAHAMAN
+// ================================================================
+// 20. MESIN KUIS PEMAHAMAN (BANK SOAL & PILIHAN JAWABAN TERACAK)
+// ================================================================
+
+// Algoritma Fisher-Yates Shuffle untuk pengacakan merata
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// Menyiapkan paket soal acak dari bank soal serta mengacak opsi jawaban
+function prepareRandomizedQuiz(story, maxQuestions = 4) {
+  if (!story.quiz || !Array.isArray(story.quiz) || story.quiz.length === 0) return [];
+
+  // 1. Acak seluruh bank soal dan ambil sejumlah maxQuestions
+  const shuffledPool = shuffleArray(story.quiz);
+  const selectedPool = shuffledPool.slice(0, Math.min(maxQuestions, shuffledPool.length));
+
+  // 2. Acak urutan opsi jawaban setiap soal sambil menjaga indeks kunci jawaban benar
+  return selectedPool.map(item => {
+    const correctAnswerText = item.options[item.answer];
+    const shuffledOptions = shuffleArray(item.options);
+    const newCorrectIndex = shuffledOptions.indexOf(correctAnswerText);
+
+    return {
+      q: item.q,
+      options: shuffledOptions,
+      answer: newCorrectIndex
+    };
+  });
+}
+
 function startQuiz() {
-  inQuizMode = true; currentQuizIndex = 0; quizScore = 0; correctCount = 0;
-  triggerHaptic('tap'); audioElement.pause(); if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  inQuizMode = true; 
+  currentQuizIndex = 0; 
+  quizScore = 0; 
+  correctCount = 0;
+
+  // Siapkan daftar soal teracak dari bank soal
+  activeQuizQuestions = prepareRandomizedQuiz(currentStory, QUIZ_QUESTION_COUNT);
+
+  triggerHaptic('tap'); 
+  audioElement.pause(); 
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   clearKaraokeHighlight();
-  bookStage.style.display = 'none'; navControls.style.display = 'none'; quizView.style.display = 'flex';
-  quizQuestionBox.style.display = 'block'; quizResult.style.display = 'none';
+
+  bookStage.style.display = 'none'; 
+  navControls.style.display = 'none'; 
+  quizView.style.display = 'flex';
+  quizQuestionBox.style.display = 'block'; 
+  quizResult.style.display = 'none';
+
   renderQuizQuestion();
 }
 
 function renderQuizQuestion() {
-  const qData = currentStory.quiz[currentQuizIndex];
-  quizStep.textContent = `${currentQuizIndex + 1}/${currentStory.quiz.length}`;
-  quizQuestionText.textContent = qData.q; quizOptions.innerHTML = '';
+  const qData = activeQuizQuestions[currentQuizIndex];
+  quizStep.textContent = `${currentQuizIndex + 1}/${activeQuizQuestions.length}`;
+  quizQuestionText.textContent = qData.q; 
+  quizOptions.innerHTML = '';
+
   qData.options.forEach((optText, idx) => {
-    const btn = document.createElement('button'); btn.className = 'quiz-opt-btn';
+    const btn = document.createElement('button'); 
+    btn.className = 'quiz-opt-btn';
     btn.innerHTML = `<span style="opacity: 0.6; font-weight: 800;">${String.fromCharCode(65 + idx)}.</span> ${optText}`;
-    btn.onclick = () => checkQuizAnswer(idx, qData.answer, btn); quizOptions.appendChild(btn);
+    btn.onclick = () => checkQuizAnswer(idx, qData.answer, btn); 
+    quizOptions.appendChild(btn);
   });
 }
 
 function checkQuizAnswer(selectedIdx, correctIdx, btnElement) {
   const allOptButtons = quizOptions.querySelectorAll('.quiz-opt-btn');
   allOptButtons.forEach(b => b.style.pointerEvents = 'none');
-  const pointsPerQuestion = 100 / currentStory.quiz.length;
+  const pointsPerQuestion = 100 / activeQuizQuestions.length;
+
   if (selectedIdx === correctIdx) {
-    playCorrectSound(); triggerHaptic('correct'); btnElement.classList.add('correct'); quizScore += pointsPerQuestion; correctCount++;
+    playCorrectSound(); 
+    triggerHaptic('correct'); 
+    btnElement.classList.add('correct'); 
+    quizScore += pointsPerQuestion; 
+    correctCount++;
   } else {
-    playWrongSound(); triggerHaptic('wrong'); btnElement.classList.add('wrong'); allOptButtons[correctIdx].classList.add('correct');
+    playWrongSound(); 
+    triggerHaptic('wrong'); 
+    btnElement.classList.add('wrong'); 
+    allOptButtons[correctIdx].classList.add('correct');
   }
-  setTimeout(() => { currentQuizIndex < currentStory.quiz.length - 1 ? (currentQuizIndex++, renderQuizQuestion()) : showQuizResult(); }, 1200);
+
+  setTimeout(() => { 
+    if (currentQuizIndex < activeQuizQuestions.length - 1) {
+      currentQuizIndex++;
+      renderQuizQuestion();
+    } else {
+      showQuizResult(); 
+    }
+  }, 1200);
 }
 
 function showQuizResult() {
-  quizQuestionBox.style.display = 'none'; quizResult.style.display = 'flex';
-  const finalScore = Math.round(quizScore); const totalQuestions = currentStory.quiz.length;
-  playFanfareSound(); resultScore.textContent = `${finalScore} Poin`;
-  let stars = "⭐"; let message = "Ayo kita baca lagi cerita ini bersama-sama agar lebih paham!";
-  if (finalScore >= 90) { stars = "⭐⭐⭐"; message = "Luar biasa! Kamu menyimak seluruh cerita dan pesan moral dengan sempurna!"; launchConfetti(); triggerHaptic('celebrate'); } 
-  else if (finalScore >= 60) { stars = "⭐⭐"; message = "Bagus sekali! Sebagian besar pertanyaan berhasil kamu jawab dengan benar."; triggerHaptic('correct'); } 
-  else { triggerHaptic('wrong'); }
+  quizQuestionBox.style.display = 'none'; 
+  quizResult.style.display = 'flex';
+
+  const finalScore = Math.round(quizScore); 
+  const totalQuestions = activeQuizQuestions.length;
+  playFanfareSound(); 
+  resultScore.textContent = `${finalScore} Poin`;
+
+  let stars = "⭐"; 
+  let message = "Ayo kita baca lagi cerita ini bersama-sama agar lebih paham!";
+
+  if (finalScore >= 90) { 
+    stars = "⭐⭐⭐"; 
+    message = "Luar biasa! Kamu menyimak seluruh cerita dan pesan moral dengan sempurna!"; 
+    launchConfetti(); 
+    triggerHaptic('celebrate'); 
+  } else if (finalScore >= 60) { 
+    stars = "⭐⭐"; 
+    message = "Bagus sekali! Sebagian besar pertanyaan berhasil kamu jawab dengan benar."; 
+    triggerHaptic('correct'); 
+  } else { 
+    triggerHaptic('wrong'); 
+  }
+
   starsBox.textContent = stars;
   resultMsg.innerHTML = `<strong>${message}</strong><br><span style="font-size: 0.9rem; opacity: 0.8; display: inline-block; margin-top: 6px;">Jawaban Benar: ${correctCount} dari ${totalQuestions} Soal</span>`;
-  const historyKey = 'storybook_quiz_history'; const quizHistory = JSON.parse(localStorage.getItem(historyKey) || '{}');
+
+  const historyKey = 'storybook_quiz_history'; 
+  const quizHistory = JSON.parse(localStorage.getItem(historyKey) || '{}');
   if (!quizHistory[currentStory.id] || finalScore >= quizHistory[currentStory.id].score) {
-    quizHistory[currentStory.id] = { score: finalScore, stars: stars, correctCount: correctCount, total: totalQuestions, savedAt: new Date().toLocaleDateString('id-ID') };
+    quizHistory[currentStory.id] = { 
+      score: finalScore, 
+      stars: stars, 
+      correctCount: correctCount, 
+      total: totalQuestions, 
+      savedAt: new Date().toLocaleDateString('id-ID') 
+    };
     localStorage.setItem(historyKey, JSON.stringify(quizHistory));
   }
 }
 
-if (btnRestartStory) { btnRestartStory.onclick = () => { triggerHaptic('tap'); inQuizMode = false; currentPage = 0; quizView.style.display = 'none'; bookStage.style.display = 'flex'; navControls.style.display = 'flex'; renderStoryPageContent(currentPage, isAutoPlay); }; }
+if (btnRestartStory) { 
+  btnRestartStory.onclick = () => { 
+    triggerHaptic('tap'); 
+    inQuizMode = false; 
+    currentPage = 0; 
+    quizView.style.display = 'none'; 
+    bookStage.style.display = 'flex'; 
+    navControls.style.display = 'flex'; 
+    renderStoryPageContent(currentPage, isAutoPlay); 
+  }; 
+}
 
-// 20. MODE MALAM
+// 21. MODE MALAM
 function applyTheme(isDark) {
   document.body.classList.toggle('dark-mode', isDark);
   if (btnThemeToggleHome) btnThemeToggleHome.textContent = isDark ? '☀️' : '🌙';
@@ -759,7 +976,7 @@ if (btnThemeToggleHome) btnThemeToggleHome.onclick = toggleTheme;
 if (btnThemeToggleReader) btnThemeToggleReader.onclick = toggleTheme;
 if (localStorage.getItem('storybook_theme') === 'dark') { applyTheme(true); }
 
-// 21. INDIKATOR JARINGAN
+// 22. INDIKATOR JARINGAN
 function updateNetworkStatus() {
   if (!networkStatus) return;
   const isOnline = navigator.onLine;
@@ -770,7 +987,7 @@ function updateNetworkStatus() {
 window.addEventListener('online', () => { updateNetworkStatus(); triggerHaptic('tap'); });
 window.addEventListener('offline', () => { updateNetworkStatus(); triggerHaptic('wrong'); });
 
-// 22. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT PURE)
+// 23. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT PURE)
 let deferredPrompt = null;
 
 if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
@@ -809,7 +1026,7 @@ window.addEventListener('appinstalled', () => {
   triggerHaptic('celebrate');
 });
 
-// 23. INISIALISASI
+// 24. INISIALISASI
 window.addEventListener('DOMContentLoaded', () => {
   renderHomeShelf();
   updateAutoPlayUI();
