@@ -1,7 +1,7 @@
 /**
  * ================================================================
  * APP.JS - MESIN BUKU CERITA INTERAKTIF TERLENGKAP
- * (AUDIO ENGINE, BILINGUAL MODE, SPEED TTS, 1-CLICK PWA, NETWORK)
+ * (AUDIO ENGINE, KARAOKE SYNC, THEMED HIGHLIGHT, BILINGUAL, PWA)
  * ================================================================
  */
 
@@ -22,6 +22,10 @@ let isHapticEnabled = localStorage.getItem('storybook_haptic') !== 'false';
 let currentStoryLang = 'id'; // Bahasa aktif buku: 'en' atau 'id'
 let ttsSpeed = 0.85; // Kecepatan TTS: 0.85 (Normal 🐇) atau 0.55 (Lambat 🐢)
 
+// Penampung pelacak linimasa kata untuk karaoke
+let currentWordElements = [];
+let wordTimingThresholds = [];
+
 // 2. REFERENSI ELEMEN DOM
 const homeView = document.getElementById('homeView');
 const readerView = document.getElementById('readerView');
@@ -40,7 +44,7 @@ const btnPageAudio = document.getElementById('btnPageAudio');
 const audioElement = document.getElementById('audioElement');
 const navControls = document.getElementById('navControls');
 
-// Referensi Tombol Fitur Baru
+// Referensi Tombol Fitur Dwibahasa & Kecepatan Suara
 const btnLangToggle = document.getElementById('btnLangToggle');
 const btnSpeedToggle = document.getElementById('btnSpeedToggle');
 
@@ -374,7 +378,6 @@ if (btnResetHistory) {
 // 12. FITUR PERALIHAN BAHASA & KECEPATAN TTS
 function updateLangToggleUI() {
   if (!btnLangToggle) return;
-  // Cek apakah cerita ini memiliki konten bilingual (mempunyai text_id atau defaultLang)
   const isBilingual = currentStory && currentStory.pages && currentStory.pages.some(p => p.text_id);
   if (isBilingual) {
     btnLangToggle.style.display = 'flex';
@@ -401,7 +404,6 @@ if (btnLangToggle) {
     triggerHaptic('tap');
     currentStoryLang = (currentStoryLang === 'en') ? 'id' : 'en';
     updateLangToggleUI();
-    // Render ulang halaman saat ini dengan bahasa baru tanpa membalik halaman
     renderStoryPageContent(currentPage, isAutoPlay);
   };
 }
@@ -420,6 +422,19 @@ function openStory(story) {
   currentPage = 0; 
   inQuizMode = false;
   
+  // Terapkan Tema Warna Highlight Cerita ke Variabel CSS
+  const theme = story.highlightTheme || {
+    bg: "linear-gradient(135deg, #fef08a, #fde047)",
+    text: "#854d0e",
+    border: "#eab308",
+    shadow: "rgba(250, 204, 21, 0.7)"
+  };
+
+  document.documentElement.style.setProperty('--story-hl-bg', theme.bg);
+  document.documentElement.style.setProperty('--story-hl-text', theme.text);
+  document.documentElement.style.setProperty('--story-hl-border', theme.border);
+  document.documentElement.style.setProperty('--story-hl-shadow', theme.shadow);
+
   // Tentukan bahasa awal cerita
   currentStoryLang = story.defaultLang || (story.lang && story.lang.startsWith('en') ? 'en' : 'id');
 
@@ -453,6 +468,7 @@ function returnToHome() {
   audioElement.pause(); 
   btnPageAudio.classList.remove('playing');
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  clearKaraokeHighlight();
   readerView.style.display = 'none'; 
   homeView.style.display = 'flex'; 
   currentStory = null; 
@@ -462,7 +478,7 @@ function returnToHome() {
 if (btnBackHome) btnBackHome.onclick = returnToHome;
 if (btnFinishToHome) btnFinishToHome.onclick = returnToHome;
 
-// 14. RENDER KONTEN BUKU (MENDUKUNG DUAL-LANGUAGE & TOOLTIP KOSAKATA)
+// 14. RENDER KONTEN BUKU (DENGAN BOBOT KARAKTER & TRACKING ELEMEN KATA)
 function renderStoryPageContent(index, autoPlayAudio = false) {
   if (!currentStory || !currentStory.pages || !currentStory.pages[index]) return;
   const pageData = currentStory.pages[index];
@@ -471,6 +487,10 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
   audioElement.currentTime = 0; 
   btnPageAudio.classList.remove('playing');
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+  // Reset pelacak karaoke halaman
+  currentWordElements = [];
+  wordTimingThresholds = [];
 
   storyImage.src = pageData.image;
 
@@ -482,7 +502,9 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
     audioElement.preload = 'auto';
     if (autoPlayAudio && isAutoPlay) {
       const playPromise = audioElement.play();
-      if (playPromise !== undefined) playPromise.then(() => { btnPageAudio.classList.add('playing'); }).catch(() => {});
+      if (playPromise !== undefined) {
+        playPromise.then(() => { btnPageAudio.classList.add('playing'); }).catch(() => {});
+      }
     }
   } else {
     audioElement.removeAttribute('src');
@@ -492,14 +514,25 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
   const activeText = (currentStoryLang === 'id' && pageData.text_id) ? pageData.text_id : (pageData.text || '');
 
   textFlow.innerHTML = '';
-  const words = activeText.split(' ');
-  words.forEach(word => {
-    if (!word) return;
+  const words = activeText.split(' ').filter(w => w.trim().length > 0);
 
-    // Bersihkan karakter baca untuk pencocokan kamus
+  // Kalkulasi estimasi bobot durasi per kata berdasarkan jumlah karakter
+  let totalChars = 0;
+  const charCounts = words.map(w => {
+    const cleanLen = w.replace(/[^a-zA-Z0-9]/g, '').length || 1;
+    totalChars += cleanLen;
+    return cleanLen;
+  });
+
+  let cumulativeChars = 0;
+  wordTimingThresholds = charCounts.map(count => {
+    cumulativeChars += count;
+    return cumulativeChars / totalChars; // Rentang nilai linimasa 0.0 sampai 1.0
+  });
+
+  words.forEach(word => {
     const cleanKey = word.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
     
-    // Bungkus kata
     const wrapper = document.createElement('div');
     wrapper.className = 'word-wrapper';
 
@@ -507,6 +540,9 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
     span.className = 'clickable-word'; 
     span.textContent = word;
     
+    // Simpan referensi span untuk pemantau linimasa karaoke
+    currentWordElements.push(span);
+
     // Tampilkan arti jika ada di kamus vocab cerita
     const hasTranslation = currentStoryLang === 'en' && pageData.vocab && pageData.vocab[cleanKey];
 
@@ -515,7 +551,6 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
 
       // Munculkan balon tooltip arti kata
       if (hasTranslation) {
-        // Hapus tooltip lama jika ada
         document.querySelectorAll('.vocab-tooltip').forEach(t => t.remove());
 
         const tip = document.createElement('div');
@@ -523,7 +558,6 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
         tip.textContent = pageData.vocab[cleanKey];
         wrapper.appendChild(tip);
 
-        // Hilang otomatis setelah 2.5 detik
         setTimeout(() => tip.remove(), 2500);
       }
     };
@@ -548,6 +582,7 @@ function turnPage(direction) {
   isFlipping = true;
   playPageTurnSound(); 
   triggerHaptic('tap');
+  clearKaraokeHighlight();
   const outClass = (direction === 'next') ? 'flip-out-left' : 'flip-out-right';
   const inClass = (direction === 'next') ? 'flip-in-right' : 'flip-in-left';
   pageSheet.classList.remove('flip-in-right', 'flip-in-left');
@@ -562,23 +597,25 @@ function turnPage(direction) {
   }, 180);
 }
 
-// 16. SUARA KATA (TTS DENGAN DETEKSI BAHASA & KECEPATAN ADAPTIF)
+// 16. SUARA KATA (TTS MANUAL DENGAN SOROT KATA BERCAHAYA)
 function speakWord(word, element) {
   if (!('speechSynthesis' in window)) return;
   triggerHaptic('tap'); 
   audioElement.pause(); 
   btnPageAudio.classList.remove('playing'); 
   window.speechSynthesis.cancel();
+  clearKaraokeHighlight();
+
+  // Hapus kelas aktif dari kata sebelumnya
+  document.querySelectorAll('.clickable-word.speaking').forEach(el => el.classList.remove('speaking'));
 
   const cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
   const utterance = new SpeechSynthesisUtterance(cleanWord);
 
-  // Bahasa TTS otomatis mengikuti bahasa aktif cerita saat ini
   const targetLang = (currentStoryLang === 'en') ? 'en-US' : 'id-ID';
   utterance.lang = targetLang;
-  utterance.rate = ttsSpeed; // Kecepatan dinamis (Kelinci 0.85 / Kura-kura 0.55)
+  utterance.rate = ttsSpeed;
 
-  // Pilih engine suara yang sesuai
   const voices = window.speechSynthesis.getVoices();
   const matchedVoice = voices.find(v => 
     v.lang.toLowerCase() === targetLang.toLowerCase() || 
@@ -594,7 +631,7 @@ function speakWord(word, element) {
   window.speechSynthesis.speak(utterance);
 }
 
-// 17. TOMBOL SPEAKER MANUAL
+// 17. TOMBOL SPEAKER MANUAL & SINKRONISASI KARAOKE NARASI AUDIO
 btnPageAudio.onclick = () => {
   triggerHaptic('tap');
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -605,7 +642,36 @@ btnPageAudio.onclick = () => {
     btnPageAudio.classList.remove('playing'); 
   }
 };
-audioElement.onended = () => { btnPageAudio.classList.remove('playing'); };
+
+// Pemantau Linimasa Narasi Audio untuk Mengaktifkan Sorotan Kata Berurutan
+audioElement.addEventListener('timeupdate', () => {
+  if (!audioElement.duration || currentWordElements.length === 0) return;
+
+  const progress = audioElement.currentTime / audioElement.duration;
+
+  let activeIndex = wordTimingThresholds.findIndex(threshold => progress <= threshold);
+  if (activeIndex === -1 && progress > 0) {
+    activeIndex = currentWordElements.length - 1;
+  }
+
+  currentWordElements.forEach((span, idx) => {
+    if (idx === activeIndex && !audioElement.paused) {
+      span.classList.add('karaoke-active');
+    } else {
+      span.classList.remove('karaoke-active');
+    }
+  });
+});
+
+function clearKaraokeHighlight() {
+  currentWordElements.forEach(span => span.classList.remove('karaoke-active'));
+}
+
+audioElement.addEventListener('pause', clearKaraokeHighlight);
+audioElement.addEventListener('ended', () => {
+  clearKaraokeHighlight();
+  btnPageAudio.classList.remove('playing');
+});
 
 // 18. GESTURE SWIPE TOUCH
 let touchStartX = 0; let touchStartY = 0;
@@ -632,6 +698,7 @@ btnPrev.onclick = () => { if (currentPage > 0) turnPage('prev'); };
 function startQuiz() {
   inQuizMode = true; currentQuizIndex = 0; quizScore = 0; correctCount = 0;
   triggerHaptic('tap'); audioElement.pause(); if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  clearKaraokeHighlight();
   bookStage.style.display = 'none'; navControls.style.display = 'none'; quizView.style.display = 'flex';
   quizQuestionBox.style.display = 'block'; quizResult.style.display = 'none';
   renderQuizQuestion();
@@ -748,7 +815,6 @@ window.addEventListener('DOMContentLoaded', () => {
   updateAutoPlayUI();
   updateHapticUI();
   updateNetworkStatus();
-  // Muat daftar suara TTS browser
   if ('speechSynthesis' in window) {
     window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
   }
