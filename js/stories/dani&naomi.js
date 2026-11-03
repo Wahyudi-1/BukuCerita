@@ -11,7 +11,7 @@ window.STORIES_DATABASE.push({
     {
       page: 1,
       text: "Hello! Meet Dani and Naomi from sunny Papua.",
-      text_id: "Halo! Kenalkan Dani dan Naomi dari Papua yang cerah.",
+      text_id: "Halo teman-teman! Kenalkan, ini Dani dan Naomi dari Papua yang cerah!",
       image: "./images/dani-naomi/dn01_compressed.jpg",
       audio: "./audio/dani-naomi/dn01.mp3",
       audio_id: "./audio/dani-naomi/dn01_id.mp3",
@@ -25,7 +25,7 @@ window.STORIES_DATABASE.push({
     {
       page: 2,
       text: "They love green trees, blue skies, and singing birds.",
-      text_id: "Mereka suka pohon hijau, langit biru, dan burung yang bernyanyi.",
+      text_id: "Dani dan Naomi suka sekali melihat pohon-pohon hijau, langit biru, dan burung yang bernyanyi.",
       image: "./images/dani-naomi/dn02_compressed.jpg",
       audio: "./audio/dani-naomi/dn02.mp3",
       audio_id: "./audio/dani-naomi/dn02_id.mp3",
@@ -42,7 +42,7 @@ window.STORIES_DATABASE.push({
     {
       page: 3,
       text: "Grandpa gives them a tiny brown seed. 'Let us plant it!'",
-      text_id: "Kakek memberi mereka biji cokelat kecil. 'Ayo kita tanam!'",
+      text_id: "Kakek tersenyum ramah lalu memberi sebutir biji cokelat. 'Ayo, kita tanam bersama!",
       image: "./images/dani-naomi/dn03_compressed.jpg",
       audio: "./audio/dani-naomi/dn03.mp3",
       audio_id: "./audio/dani-naomi/dn03_id.mp3",
@@ -58,7 +58,7 @@ window.STORIES_DATABASE.push({
     {
       page: 4,
       text: "Look at this little seed! It is so small.",
-      text_id: "Lihat biji kecil ini! Ukurannya sangat mungil.",
+      text_id: "Wah, lihat biji kecil ini! Bentuknya mungil sekali, ya!",
       image: "./images/dani-naomi/dn04_compressed.jpg",
       audio: "./audio/dani-naomi/dn04.mp3",
       audio_id: "./audio/dani-naomi/dn04_id.mp3",
@@ -72,7 +72,7 @@ window.STORIES_DATABASE.push({
     {
       page: 5,
       text: "We find a sunny spot with soft, dark soil.",
-      text_id: "Kita menemukan tempat yang cerah dengan tanah gembur yang subur.",
+      text_id: "Kita cari tempat yang hangat dengan tanah hitam yang subur dan gembur.",
       image: "./images/dani-naomi/dn05_compressed.jpg",
       audio: "./audio/dani-naomi/dn05.mp3",
       audio_id: "./audio/dani-naomi/dn05_id.mp3",
@@ -88,7 +88,7 @@ window.STORIES_DATABASE.push({
     {
       page: 6,
       text: "Dig, dig, dig! Dani makes a cozy little hole.",
-      text_id: "Gali, gali, gali! Dani membuat lubang kecil yang pas.",
+      text_id: "Gali, gali, gali! Dani membuat lubang kecil yang nyaman di tanah.",
       image: "./images/dani-naomi/dn06_compressed.jpg",
       audio: "./audio/dani-naomi/dn06.mp3",
       audio_id: "./audio/dani-naomi/dn06_id.mp3",
@@ -102,7 +102,7 @@ window.STORIES_DATABASE.push({
     {
       page: 7,
       text: "Drop, drop! Naomi puts the seed inside.",
-      text_id: "Cemplung, cemplung! Naomi memasukkan biji ke dalamnya.",
+      text_id: "Pluk! Naomi menaruh biji pohon itu perlahan ke dalam lubang.",
       image: "./images/dani-naomi/dn07_compressed.jpg",
       audio: "./audio/dani-naomi/dn07.mp3",
       audio_id: "./audio/dani-naomi/dn07_id.mp3",
@@ -115,7 +115,7 @@ window.STORIES_DATABASE.push({
     {
       page: 8,
       text: "Cover the seed gently. Sleep well, little friend!",
-      text_id: "Tutup bijinya perlahan. Tidur yang nyenyak ya, sahabat kecil!",
+      text_id: "Tutup tanahnya pelan-pelan. Tidur nyenyak ya, kawan kecil!",
       image: "./images/dani-naomi/dn08_compressed.jpg",
       audio: "./audio/dani-naomi/dn08.mp3",
       audio_id: "./audio/dani-naomi/dn08_id.mp3",
@@ -130,7 +130,7 @@ window.STORIES_DATABASE.push({
     {
       page: 9,
       text: "Drip, drop, splash! Naomi waters the dry earth.",
-      text_id: "Tik, tik, byur! Naomi menyiram tanah yang kering.",
+      text_id: "Tik, tik, byur! Naomi menyiram tanah yang haus dengan air segar.",
       image: "./images/dani-naomi/dn09_compressed.jpg",
       audio: "./audio/dani-naomi/dn09.mp3",
       audio_id: "./audio/dani-naomi/dn09_id.mp3",
@@ -145,7 +145,7 @@ window.STORIES_DATABASE.push({
     {
       page: 10,
       text: "Pick up the trash! We keep our garden clean.",
-      text_id: "Pungut sampahnya! Kita jaga kebun kita tetap bersih.",
+      text_id: "Ayo kumpulkan daun kering! Kita jaga halaman agar tetap bersih dan rapi.",
       image: "./images/dani-naomi/dn10_compressed.jpg",
       audio: "./audio/dani-naomi/dn10.mp3",
       audio_id: "./audio/dani-naomi/dn10_id.mp3",
@@ -160,7 +160,7 @@ window.STORIES_DATABASE.push({
     {
       page: 11,
       text: "Look! A tiny green sprout pops up! Wow!",
-      text_id: "Lihat! Tunas hijau kecil mulai muncul! Wah!",
+      text_id: "Lihat! Ada tunas hijau mungil yang menyembul! Hore, bijinya tumbuh!",
       image: "./images/dani-naomi/dn11_compressed.jpg",
       audio: "./audio/dani-naomi/dn11.mp3",
       audio_id: "./audio/dani-naomi/dn11_id.mp3",
@@ -173,7 +173,7 @@ window.STORIES_DATABASE.push({
     {
       page: 12,
       text: "Warm sun and sweet rain help the baby tree grow.",
-      text_id: "Hangat matahari dan rintik hujan membantu pohon kecil tumbuh.",
+      text_id: "Mentari yang hangat dan rintik hujan sejuk membantu pohon kecil bertambah tinggi.",
       image: "./images/dani-naomi/dn12_compressed.jpg",
       audio: "./audio/dani-naomi/dn12.mp3",
       audio_id: "./audio/dani-naomi/dn12_id.mp3",
@@ -189,7 +189,7 @@ window.STORIES_DATABASE.push({
     {
       page: 13,
       text: "The tree grows tall! A colorful bird sings hello.",
-      text_id: "Pohonnya tumbuh tinggi! Burung warna-warni bernyanyi menyapa.",
+      text_id: "Wah, pohonnya makin tinggi! Burung Cenderawasih yang indah datang bernyanyi.",
       image: "./images/dani-naomi/dn13_compressed.jpg",
       audio: "./audio/dani-naomi/dn13.mp3",
       audio_id: "./audio/dani-naomi/dn13_id.mp3",
@@ -204,7 +204,7 @@ window.STORIES_DATABASE.push({
     {
       page: 14,
       text: "Fresh cool air and cozy shade for everyone!",
-      text_id: "Udara sejuk segar dan teduh yang nyaman untuk semua!",
+      text_id: "Haaah... udaranya sejuk sekali! Pohon rindang ini jadi tempat berteduh yang nyaman.",
       image: "./images/dani-naomi/dn14_compressed.jpg",
       audio: "./audio/dani-naomi/dn14.mp3",
       audio_id: "./audio/dani-naomi/dn14_id.mp3",
@@ -219,7 +219,7 @@ window.STORIES_DATABASE.push({
     {
       page: 15,
       text: "Plant a tree today! Let us protect our green Earth!",
-      text_id: "Tanam pohon hari ini! Mari kita jaga Bumi hijau kita!",
+      text_id: "Ayo tanam pohon hari ini! Bersama-sama, kita rawat dan jaga Bumi kita!",
       image: "./images/dani-naomi/dn15_compressed.jpg",
       audio: "./audio/dani-naomi/dn15.mp3",
       audio_id: "./audio/dani-naomi/dn15_id.mp3",
