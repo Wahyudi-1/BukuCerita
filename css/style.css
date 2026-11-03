@@ -11,6 +11,12 @@
   --card-shadow: rgba(0, 0, 0, 0.06);
   --word-dash: #a0aec0;
   --option-bg: #f8fafc;
+
+  /* Nilai Awal Variabel Highlight Tema Cerita */
+  --story-hl-bg: linear-gradient(135deg, #fef08a, #fde047);
+  --story-hl-text: #854d0e;
+  --story-hl-border: #eab308;
+  --story-hl-shadow: rgba(250, 204, 21, 0.7);
 }
 
 body.dark-mode {
@@ -433,24 +439,65 @@ body.dark-mode .btn-tool.autoplay-off, body.dark-mode .btn-tool.haptic-off {
 }
 
 .clickable-word {
+  position: relative;
   cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 8px;
+  padding: 3px 8px;
+  border-radius: 10px;
   border-bottom: 2px dashed var(--word-dash);
-  transition: transform 0.1s ease, background-color 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: inline-block;
 }
 
 .clickable-word:hover {
   background-color: rgba(28, 176, 246, 0.15);
   color: var(--accent);
   border-bottom-color: var(--accent);
+  transform: translateY(-1px);
 }
 
-.clickable-word:active, .clickable-word.speaking {
-  background-color: rgba(28, 176, 246, 0.3);
-  color: var(--accent);
-  border-bottom-style: solid;
-  transform: scale(0.94);
+/* Animasi Kata Aktif yang Sedang Dilafalkan Manual (TTS Klik) */
+.clickable-word.speaking {
+  background: var(--story-hl-bg) !important;
+  color: var(--story-hl-text) !important;
+  border-bottom: 2px solid var(--story-hl-border) !important;
+  border-radius: 10px;
+  font-weight: 800;
+  z-index: 10;
+  animation: wordHighlightPulse 0.55s infinite alternate ease-in-out;
+}
+
+@keyframes wordHighlightPulse {
+  0% {
+    transform: scale(1.08) translateY(-2px);
+    box-shadow: 0 0 8px var(--story-hl-shadow), 0 3px 0 var(--story-hl-border);
+  }
+  100% {
+    transform: scale(1.16) translateY(-4px);
+    box-shadow: 0 0 18px var(--story-hl-shadow), 0 5px 0 var(--story-hl-border);
+  }
+}
+
+/* Animasi Sorot Karaoke Otomatis Mengikuti Narasi Audio Halaman */
+.clickable-word.karaoke-active {
+  background: var(--story-hl-bg) !important;
+  color: var(--story-hl-text) !important;
+  border-bottom: 2px solid var(--story-hl-border) !important;
+  border-radius: 10px;
+  font-weight: 800;
+  display: inline-block;
+  transform: scale(1.15) translateY(-3px);
+  box-shadow: 0 0 14px var(--story-hl-shadow), 0 3px 0 var(--story-hl-border) !important;
+  transition: transform 0.12s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+              background 0.15s ease, 
+              box-shadow 0.15s ease;
+  z-index: 10;
+}
+
+/* Penyesuaian Highlight pada Mode Malam */
+body.dark-mode .clickable-word.speaking,
+body.dark-mode .clickable-word.karaoke-active {
+  box-shadow: 0 0 18px var(--story-hl-shadow), 0 3px 0 var(--story-hl-border) !important;
+  filter: brightness(1.05);
 }
 
 /* Balon Terjemahan Kata */
