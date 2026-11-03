@@ -14,7 +14,7 @@ window.STORIES_DATABASE.push({
   title: "Petualangan Lala & Roda Darat Hebat",
   category: "Fase Fondasi / TK B",
   defaultLang: "id",
-  cover: "./images/lala-transportasi-darat/lala01_compressed.jpg",
+  cover: "./images/lala-transportasi-darat/la01_compressed.jpg",
   description: "Ayo ikuti petualangan Lala mengenal berbagai macam kendaraan darat, mulai dari sepeda, bus, ambulans, hingga kereta cepat yang melesat kilat!",
 
   highlightTheme: {
@@ -29,7 +29,7 @@ window.STORIES_DATABASE.push({
       page: 1,
       text: "Hello, friends! My name is Lala. Today, let's explore land vehicles together!",
       text_id: "Halo, teman-teman! Namaku Lala. Hari ini, ayo bertualang mengenal kendaraan darat bersama Lala!",
-      image: "./images/lala-transportasi-darat/lala01_compressed.jpg",
+      image: "./images/lala-transportasi-darat/la01_compressed.jpg",
       audio: "./audio/lala-transportasi-darat/la01.mp3",
       audio_id: "./audio/lala-transportasi-darat/la01_id.mp3",
       vocab: {
@@ -43,7 +43,7 @@ window.STORIES_DATABASE.push({
       page: 2,
       text: "Ring-ring! Look, this is a two-wheeled bicycle. Lala pedals happily with her feet!",
       text_id: "Kring-kring! Lihat, ini sepeda beroda dua. Kaki Lala mengayuh pedal dengan gembira!",
-      image: "./images/lala-transportasi-darat/lala02_compressed.jpg",
+      image: "./images/lala-transportasi-darat/la02_compressed.jpg",
       audio: "./audio/lala-transportasi-darat/la02.mp3",
       audio_id: "./audio/lala-transportasi-darat/la02_id.mp3",
       vocab: {
@@ -57,7 +57,7 @@ window.STORIES_DATABASE.push({
       page: 3,
       text: "Swoosh! This is a nimble scooter. One foot on the deck, and one foot pushes the ground!",
       text_id: "Wusss! Ini skuter lincah. Satu kaki Lala di atas papan, satu kaki lagi mendorong ke tanah.",
-      image: "./images/lala-transportasi-darat/lala03_compressed.jpg",
+      image: "./images/lala-transportasi-darat/la03_compressed.jpg",
       audio: "./audio/lala-transportasi-darat/la03.mp3",
       audio_id: "./audio/lala-transportasi-darat/la03_id.mp3",
       vocab: {
@@ -71,7 +71,7 @@ window.STORIES_DATABASE.push({
       page: 4,
       text: "Vroom-vroom! A motorcycle cruises on the street. The rider always wears a safety helmet!",
       text_id: "Brum-brum! Sepeda motor lewat di jalan raya. Pengendaranya tertib memakai helm pelindung kepala.",
-      image: "./images/lala-transportasi-darat/lala04_compressed.jpg",
+      image: "./images/lala-transportasi-darat/la04_compressed.jpg",
       audio: "./audio/lala-transportasi-darat/la04.mp3",
       audio_id: "./audio/lala-transportasi-darat/la04_id.mp3",
       vocab: {
@@ -85,7 +85,7 @@ window.STORIES_DATABASE.push({
       page: 5,
       text: "Click! Lala sits safely inside the family car. Remember, always buckle up your seatbelt!",
       text_id: "Klik! Lala duduk rapi di dalam mobil keluarga. Ingat, selalu pasang sabuk pengamanmu, ya!",
-      image: "./images/lala-transportasi-darat/lala05_compressed.jpg",
+      image: "./images/lala-transportasi-darat/la05_compressed.jpg",
       audio: "./audio/lala-transportasi-darat/la05.mp3",
       audio_id: "./audio/lala-transportasi-darat/la05_id.mp3",
       vocab: {
@@ -99,7 +99,7 @@ window.STORIES_DATABASE.push({
       page: 6,
       text: "Beep! This yellow car is called a taxi. It has a bright glowing sign right on its roof!",
       text_id: "Tiiin! Mobil kuning ini namanya taksi. Ada lampu huruf menyala di atas atapnya.",
-      image: "./images/lala-transportasi-darat/lala06_compressed.jpg",
+      image: "./images/lala-transportasi-darat/la06_compressed.jpg",
       audio: "./audio/lala-transportasi-darat/la06.mp3",
       audio_id: "./audio/lala-transportasi-darat/la06_id.mp3",
       vocab: {
@@ -113,7 +113,7 @@ window.STORIES_DATABASE.push({
       page: 7,
       text: "Wow, the city bus is so big! It has automatic doors and can carry lots of passengers.",
       text_id: "Wah, bus kota besar sekali! Bus ini punya pintu otomatis dan bisa membawa banyak penumpang.",
-      image: "./images/lala-transportasi-darat/lala07_compressed.jpg",
+      image: "./images/lala-transportasi-darat/la07_compressed.jpg",
       audio: "./audio/lala-transportasi-darat/la07.mp3",
       audio_id: "./audio/lala-transportasi-darat/la07_id.mp3",
       vocab: {
@@ -127,7 +127,7 @@ window.STORIES_DATABASE.push({
       page: 8,
       text: "All aboard! The cheerful yellow school bus is ready to take our friends to school.",
       text_id: "Ayo naik! Bus sekolah berwarna kuning ceria siap mengantar teman-teman ke sekolah.",
-      image: "./images/lala-transportasi-darat/lala08_compressed.jpg",
+      image: "./images/lala-transportasi-darat/la08_compressed.jpg",
       audio: "./audio/lala-transportasi-darat/la08.mp3",
       audio_id: "./audio/lala-transportasi-darat/la08_id.mp3",
       vocab: {
@@ -141,7 +141,7 @@ window.STORIES_DATABASE.push({
       page: 9,
       text: "Rumble! A big truck carries cargo in its open bed. Its wheels are huge, plentiful, and super strong!",
       text_id: "Brummm! Truk besar membawa barang di bak belakangnya. Rodanya besar, banyak, dan sangat kuat!",
-      image: "./images/lala-transportasi-darat/lala09_compressed.jpg",
+      image: "./images/lala-transportasi-darat/la09_compressed.jpg",
       audio: "./audio/lala-transportasi-darat/la09.mp3",
       audio_id: "./audio/lala-transportasi-darat/la09_id.mp3",
       vocab: {
@@ -155,7 +155,7 @@ window.STORIES_DATABASE.push({
       page: 10,
       text: "Wee-woo, wee-woo! The bright red fire engine rushes forward. The firefighters are ready to help!",
       text_id: "Ninu-ninu! Mobil pemadam kebakaran berwarna merah melaju sigap. Petugas siap memadamkan api!",
-      image: "./images/lala-transportasi-darat/lala10_compressed.jpg",
+      image: "./images/lala-transportasi-darat/la10_compressed.jpg",
       audio: "./audio/lala-transportasi-darat/la10.mp3",
       audio_id: "./audio/lala-transportasi-darat/la10_id.mp3",
       vocab: {
@@ -169,7 +169,7 @@ window.STORIES_DATABASE.push({
       page: 11,
       text: "Wee-woo! This ambulance helps people who are sick. All other cars kindly let it pass first.",
       text_id: "Wiu-wiu! Ini mobil ambulans penolong orang sakit. Semua mobil lain memberi jalan lebih dulu.",
-      image: "./images/lala-transportasi-darat/lala11_compressed.jpg",
+      image: "./images/lala-transportasi-darat/la11_compressed.jpg",
       audio: "./audio/lala-transportasi-darat/la11.mp3",
       audio_id: "./audio/lala-transportasi-darat/la11_id.mp3",
       vocab: {
@@ -183,7 +183,7 @@ window.STORIES_DATABASE.push({
       page: 12,
       text: "Ting-ting! Riding a traditional pedicab is so fun. It has three wheels and pedals along gently.",
       text_id: "Ting-ting! Asyiknya naik becak tradisional. Beroda tiga dan dikayuh santai oleh Pak Sopir.",
-      image: "./images/lala-transportasi-darat/lala12_compressed.jpg",
+      image: "./images/lala-transportasi-darat/la12_compressed.jpg",
       audio: "./audio/lala-transportasi-darat/la12.mp3",
       audio_id: "./audio/lala-transportasi-darat/la12_id.mp3",
       vocab: {
@@ -197,7 +197,7 @@ window.STORIES_DATABASE.push({
       page: 13,
       text: "Choo-choo, chugga-chugga! The train glides along long steel tracks. Its cars are lined up so neatly!",
       text_id: "Tut-tut-tut, gujes-gujes! Kereta api meluncur di atas rel panjang. Gerbongnya berbaris rapi!",
-      image: "./images/lala-transportasi-darat/lala13_compressed.jpg",
+      image: "./images/lala-transportasi-darat/la13_compressed.jpg",
       audio: "./audio/lala-transportasi-darat/la13.mp3",
       audio_id: "./audio/lala-transportasi-darat/la13_id.mp3",
       vocab: {
@@ -211,7 +211,7 @@ window.STORIES_DATABASE.push({
       page: 14,
       text: "Whoosh, fast as lightning! This is a modern high-speed train. It glides smoothly without loud noise.",
       text_id: "Wusss, melesat kilat! Ini kereta cepat modern. Meluncur sangat cepat tanpa suara bising.",
-      image: "./images/lala-transportasi-darat/lala14_compressed.jpg",
+      image: "./images/lala-transportasi-darat/la14_compressed.jpg",
       audio: "./audio/lala-transportasi-darat/la14.mp3",
       audio_id: "./audio/lala-transportasi-darat/la14_id.mp3",
       vocab: {
@@ -225,7 +225,7 @@ window.STORIES_DATABASE.push({
       page: 15,
       text: "What a fun journey with Lala! Land vehicles help us travel every day. Always stay safe, everyone!",
       text_id: "Seru sekali perjalanan Lala! Kendaraan darat membantu kita bepergian. Selalu utamakan keselamatan, ya!",
-      image: "./images/lala-transportasi-darat/lala15_compressed.jpg",
+      image: "./images/lala-transportasi-darat/la15_compressed.jpg",
       audio: "./audio/lala-transportasi-darat/la15.mp3",
       audio_id: "./audio/lala-transportasi-darat/la15_id.mp3",
       vocab: {
