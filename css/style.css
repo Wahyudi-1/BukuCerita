@@ -597,3 +597,58 @@ body.dark-mode .vocab-tooltip::after {
 
 /* Overlay Konfeti */
 #confettiCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 99999; display: none; }
+
+/* ================= TOMBOL & LENCANA STATUS OFFLINE CERITA ================= */
+.story-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  gap: 8px;
+}
+
+.btn-offline-status {
+  background: var(--option-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-sub);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.btn-offline-status:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Status Siap Offline (Sudah Terunduh Lengkap) */
+.btn-offline-status.cached {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
+}
+
+/* Status Sedang Mengunduh */
+.btn-offline-status.downloading {
+  background: #fef08a;
+  color: #854d0e;
+  border-color: #facc15;
+  cursor: wait;
+}
+
+body.dark-mode .btn-offline-status.cached {
+  background: #064e3b;
+  color: #6ee7b7;
+  border-color: #047857;
+}
+
+body.dark-mode .btn-offline-status.downloading {
+  background: #362c0d;
+  color: #fde047;
+  border-color: #854d0e;
+}
