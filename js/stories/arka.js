@@ -4,7 +4,7 @@ window.STORIES_DATABASE.push({
   id: "arka-berdoa",
   title: "Kebiasaan Baik Arka",
   lang: "id-ID", // Otomatis mengaktifkan pelafalan bahasa Indonesia
-  category: "Fase Fondasi / A",
+  category: "Fase Fondasi / TK B",
   cover: "./images/arka/01.jpg",
   description: "Kisah Arka yang selalu memulai dan menutup hari dengan doa serta rasa syukur.",
   pages: [
@@ -131,23 +131,138 @@ window.STORIES_DATABASE.push({
   ],
   quiz: [
     {
-      q: "Apa yang dilakukan Arka sebelum menyantap sarapan dan bekal apelnya?",
-      options: ["Langsung menghabiskannya", "Menundukkan kepala dan berdoa", "Bermain lari-larian"],
-      answer: 1
-    },
-    {
-      q: "Bagaimana sikap Arka saat teman di sebelahnya lupa membawa bekal?",
-      options: ["Membagi kuenya dengan tulus", "Membiarkannya kelaparan", "Menertawakan temannya"],
+      q: "Apa yang dilakukan Arka saat bangun dari kasur di pagi hari? (What does Arka do when waking up in the morning?)",
+      options: [
+        "Tersenyum bersyukur (Smiles with gratitude)",
+        "Menangis (Crying)",
+        "Tidur lagi (Goes back to sleep)"
+      ],
       answer: 0
     },
     {
-      q: "Apa yang dilakukan Arka ketika menghadapi soal berhitung yang sulit?",
-      options: ["Menangis dan menyerah", "Melihat contekan teman", "Berdoa memohon pikiran yang terang"],
-      answer: 2
+      q: "Apa yang dirapikan oleh Arka setelah ia bangun tidur? (What does Arka tidy up after waking up?)",
+      options: [
+        "Mainan (Toys)",
+        "Kasur mungilnya (His small bed)",
+        "Meja belajar (Study desk)"
+      ],
+      answer: 1
     },
     {
-      q: "Kapan Arka menyiram tanaman di kebun hingga segar?",
-      options: ["Malam hari", "Sore hari", "Tengah malam"],
+      q: "Apa yang dilakukan Arka sebelum menyantap sarapan pagi? (What does Arka do before eating breakfast?)",
+      options: [
+        "Lari-larian (Running around)",
+        "Menundukkan kepala dan berdoa (Bowing his head and praying)",
+        "Bermain mainan (Playing with toys)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Warna apakah sepatu yang dipakai Arka saat hendak berangkat ke sekolah? (What color are the shoes Arka wears to school?)",
+      options: [
+        "Sepatu merah (Red shoes)",
+        "Sepatu hitam (Black shoes)",
+        "Sepatu hijau (Green shoes)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Siapa yang disambut dengan senyum riang oleh Arka di gerbang sekolah? (Who does Arka greet with a smile at the school gate?)",
+      options: [
+        "Bapak guru (The teacher)",
+        "Satpam (Security guard)",
+        "Kucing (Cat)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Kapan Arka dan teman-teman berdoa bersama di kelas? (When do Arka and his friends pray together in class?)",
+      options: [
+        "Sebelum pelajaran dimulai (Before class starts)",
+        "Saat pulang saja (Only when going home)",
+        "Saat tidur siang (During nap time)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Apa yang dilakukan Arka ketika menghadapi soal berhitung yang sulit? (What does Arka do when facing a difficult math problem?)",
+      options: [
+        "Menangis dan marah (Crying and getting angry)",
+        "Berdoa memohon pikiran yang terang (Praying for a clear mind)",
+        "Melihat contekan teman (Cheating from a friend)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Buah apa yang dimakan Arka saat waktu istirahat sekolah tiba? (What fruit does Arka eat during school recess?)",
+      options: [
+        "Apel manis (Sweet apple)",
+        "Pisang (Banana)",
+        "Jeruk (Orange)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Bagaimana sikap Arka saat teman di sebelahnya lupa membawa bekal? (How does Arka react when his friend forgets a lunch box?)",
+      options: [
+        "Membagi kuenya dengan tulus (Sharing his cake sincerely)",
+        "Membiarkannya kelaparan (Leaving him hungry)",
+        "Menyembunyikan makanannya (Hiding his food)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Mainan apa yang dimainkan Arka sambil berdoa agar tetap aman? (What playground toy does Arka play on while praying to stay safe?)",
+      options: [
+        "Ayunan (Swing)",
+        "Prosotan (Slide)",
+        "Jungkitan (Seesaw)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Benda apa yang dibuka Arka saat rintik hujan mulai turun di jalan? (What object does Arka open when it starts to rain?)",
+      options: [
+        "Buku (Book)",
+        "Payung (Umbrella)",
+        "Topi (Hat)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Kapan waktu Arka membuat Pekerjaan Rumah (PR) agar selalu rajin belajar? (When does Arka do his homework?)",
+      options: [
+        "Sore hari (In the afternoon)",
+        "Tengah malam (At midnight)",
+        "Pagi subuh (At dawn)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Apa yang disiram Arka di kebun hingga tampak segar dan indah? (What does Arka water in the garden?)",
+      options: [
+        "Tanaman dan bunga (Plants and flowers)",
+        "Dinding rumah (House wall)",
+        "Sepeda (Bicycle)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Apa yang dilakukan keluarga Arka sebelum menikmati makan malam? (What does Arka's family do before eating dinner?)",
+      options: [
+        "Berdoa bersama mensyukuri hidangan (Praying together to thank God for the meal)",
+        "Tidur (Sleeping)",
+        "Nonton TV (Watching TV)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Apa saja kebiasaan baik Arka sebelum tidur di malam hari? (What are Arka's good habits before sleeping at night?)",
+      options: [
+        "Makan permen banyak-banyak (Eating lots of candy)",
+        "Menyikat gigi, mencuci wajah, dan berdoa (Brushing teeth, washing face, and praying)",
+        "Bermain bola (Playing soccer)"
+      ],
       answer: 1
     }
   ]
