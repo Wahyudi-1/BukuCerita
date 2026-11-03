@@ -233,7 +233,25 @@ window.STORIES_DATABASE.push({
   ],
   quiz: [
     {
-      q: "What did Grandpa give to Dani and Naomi? (Apa yang Kakek berikan?)",
+      q: "Where are Dani and Naomi from? (Dari manakah asal Dani dan Naomi?)",
+      options: [
+        "From sunny Papua (Dari Papua yang cerah)",
+        "From the moon (Dari bulan)",
+        "From under the sea (Dari bawah laut)"
+      ],
+      answer: 0
+    },
+    {
+      q: "What color are the trees that Dani and Naomi love? (Warna apakah pohon yang disukai Dani dan Naomi?)",
+      options: [
+        "Pink (Merah muda)",
+        "Green (Hijau)",
+        "Purple (Ungu)"
+      ],
+      answer: 1
+    },
+    {
+      q: "What did Grandpa give to Dani and Naomi? (Apa yang Kakek berikan kepada Dani dan Naomi?)",
       options: [
         "A tiny brown seed (Biji benih cokelat kecil)",
         "A plastic bottle (Botol plastik)",
@@ -242,31 +260,112 @@ window.STORIES_DATABASE.push({
       answer: 0
     },
     {
-      q: "What did Dani use to dig a cozy little hole in the soil? (Alat apa yang dipakai Dani untuk menggali tanah?)",
+      q: "How does the seed given by Grandpa look? (Bagaimana bentuk biji benih yang diberikan Kakek?)",
       options: [
-        "A spoon (Sendok makan)",
-        "A small garden trowel (Sekop kecil)",
-        "A book (Buku bacaan)"
+        "Very big (Sangat besar)",
+        "So small (Sangat kecil / mungil)",
+        "Long like a stick (Panjang seperti kayu)"
       ],
       answer: 1
     },
     {
-      q: "What did Naomi pour on the soil to help the seed grow? (Apa yang disiramkan Naomi agar biji tumbuh?)",
+      q: "What kind of soil do they find to plant the seed? (Tanah seperti apa yang mereka cari untuk menanam biji?)",
       options: [
-        "Orange juice (Jus jeruk)",
-        "Cold milk (Susu dingin)",
-        "Fresh water (Air segar)"
+        "Soft, dark soil (Tanah hitam yang subur dan gembur)",
+        "Hard rock (Batu keras)",
+        "Sand in a bucket (Pasir di ember)"
+      ],
+      answer: 0
+    },
+    {
+      q: "What did Dani make in the soil for the seed? (Apa yang dibuat Dani di dalam tanah untuk biji?)",
+      options: [
+        "A high tower (Menara tinggi)",
+        "A cozy little hole (Lubang kecil yang nyaman)",
+        "A swimming pool (Kolam renang)"
+      ],
+      answer: 1
+    },
+    {
+      q: "What did Naomi put inside the cozy hole? (Apa yang dimasukkan Naomi ke dalam lubang?)",
+      options: [
+        "The seed (Biji benih)",
+        "A candy (Permen)",
+        "A shoe (Sepatu)"
+      ],
+      answer: 0
+    },
+    {
+      q: "What should we do after putting the seed into the hole? (Apa yang harus dilakukan setelah menaruh biji ke dalam lubang?)",
+      options: [
+        "Leave it open forever (Membiarkannya terbuka)",
+        "Throw it away (Membuangnya)",
+        "Cover the seed gently with soil (Menutup biji pelan-pelan dengan tanah)"
       ],
       answer: 2
     },
     {
-      q: "How can we keep our garden clean and green? (Bagaimana cara menjaga kebun kita tetap bersih?)",
+      q: "What did Naomi pour on the soil to help the seed grow? (Apa yang disiramkan Naomi pada tanah yang kering?)",
+      options: [
+        "Cold milk (Susu dingin)",
+        "Fresh water (Air segar)",
+        "Sweet tea (Teh manis)"
+      ],
+      answer: 1
+    },
+    {
+      q: "How can we keep our garden clean and tidy? (Bagaimana cara menjaga halaman kita tetap bersih dan rapi?)",
       options: [
         "Pick up trash and dry leaves (Memungut sampah dan daun kering)",
-        "Throw plastic everywhere (Membuang plastik sembarangan)",
-        "Step on the flowers (Menginjak tanaman bunga)"
+        "Throw trash everywhere (Membuang sampah sembarangan)",
+        "Step on flowers (Menginjak-injak bunga)"
       ],
       answer: 0
+    },
+    {
+      q: "What pops up from the soil after the seed grows? (Apa yang muncul menyembul dari tanah setelah biji tumbuh?)",
+      options: [
+        "A big stone (Batu besar)",
+        "A balloon (Balon)",
+        "A tiny green sprout (Tunas hijau mungil)"
+      ],
+      answer: 2
+    },
+    {
+      q: "What helps the baby tree grow tall? (Apa yang membantu pohon kecil tumbuh bertambah tinggi?)",
+      options: [
+        "Ice cream and cakes (Es krim dan kue)",
+        "Warm sun and sweet rain (Mentari hangat dan air hujan sejuk)",
+        "Night darkness only (Kegelapan malam saja)"
+      ],
+      answer: 1
+    },
+    {
+      q: "What animal comes and sings when the tree grows tall? (Hewan apa yang datang bernyanyi saat pohon tumbuh tinggi?)",
+      options: [
+        "A colorful bird (Burung berwarna-warni / Cenderawasih)",
+        "A sleepy cat (Kucing ngantuk)",
+        "A tiny fish (Ikan kecil)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Why is a big tree good for everyone? (Mengapa pohon besar baik untuk semua orang?)",
+      options: [
+        "It gives fresh cool air and cozy shade (Memberikan udara sejuk dan tempat berteduh)",
+        "It makes loud noise (Membuat suara bising)",
+        "It blocks the light completely (Menghalangi jalan)"
+      ],
+      answer: 0
+    },
+    {
+      q: "What should we do to protect our green Earth? (Apa yang harus kita lakukan untuk menjaga Bumi kita yang hijau?)",
+      options: [
+        "Cut down all trees (Menebang semua pohon)",
+        "Plant trees and care for nature (Menanam pohon dan merawat alam)",
+        "Leave trash everywhere (Membiarkan sampah di mana-mana)"
+      ],
+      answer: 1
     }
   ]
 });
