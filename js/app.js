@@ -1,7 +1,7 @@
 /**
  * ================================================================
  * APP.JS - MESIN BUKU CERITA INTERAKTIF TERLENGKAP
- * (AUDIO ENGINE, DYNAMIC TTS LANG, HAPTIC, 1-CLICK PWA, NETWORK)
+ * (AUDIO ENGINE, BILINGUAL MODE, SPEED TTS, 1-CLICK PWA, NETWORK)
  * ================================================================
  */
 
@@ -16,8 +16,11 @@ let correctCount = 0;
 const preloadedImages = {};
 const preloadedAudios = {};
 
+// Status preferensi pengguna & fitur baru
 let isAutoPlay = localStorage.getItem('storybook_autoplay') !== 'false';
 let isHapticEnabled = localStorage.getItem('storybook_haptic') !== 'false';
+let currentStoryLang = 'id'; // Bahasa aktif buku: 'en' atau 'id'
+let ttsSpeed = 0.85; // Kecepatan TTS: 0.85 (Normal 🐇) atau 0.55 (Lambat 🐢)
 
 // 2. REFERENSI ELEMEN DOM
 const homeView = document.getElementById('homeView');
@@ -36,6 +39,10 @@ const btnNext = document.getElementById('btnNext');
 const btnPageAudio = document.getElementById('btnPageAudio');
 const audioElement = document.getElementById('audioElement');
 const navControls = document.getElementById('navControls');
+
+// Referensi Tombol Fitur Baru
+const btnLangToggle = document.getElementById('btnLangToggle');
+const btnSpeedToggle = document.getElementById('btnSpeedToggle');
 
 const quizView = document.getElementById('quizView');
 const quizQuestionBox = document.getElementById('quizQuestionBox');
@@ -268,9 +275,11 @@ function preloadStoryImages(story) {
 function preloadStoryAudios(story) {
   if (!story || !story.pages) return;
   story.pages.forEach(p => {
-    if (p.audio && !preloadedAudios[p.audio]) {
-      const audioObj = new Audio(); audioObj.preload = 'auto'; audioObj.src = p.audio; preloadedAudios[p.audio] = audioObj;
-    }
+    [p.audio, p.audio_id].forEach(audioSrc => {
+      if (audioSrc && !preloadedAudios[audioSrc]) {
+        const audioObj = new Audio(); audioObj.preload = 'auto'; audioObj.src = audioSrc; preloadedAudios[audioSrc] = audioObj;
+      }
+    });
   });
 }
 
@@ -362,42 +371,115 @@ if (btnResetHistory) {
   };
 }
 
-// 12. BUKA CERITA & KEMBALI
+// 12. FITUR PERALIHAN BAHASA & KECEPATAN TTS
+function updateLangToggleUI() {
+  if (!btnLangToggle) return;
+  // Cek apakah cerita ini memiliki konten bilingual (mempunyai text_id atau defaultLang)
+  const isBilingual = currentStory && currentStory.pages && currentStory.pages.some(p => p.text_id);
+  if (isBilingual) {
+    btnLangToggle.style.display = 'flex';
+    btnLangToggle.textContent = currentStoryLang === 'en' ? '🌐 EN' : '🌐 ID';
+    btnLangToggle.title = `Sedang aktif: ${currentStoryLang === 'en' ? 'Bahasa Inggris' : 'Bahasa Indonesia'} (Klik untuk berganti)`;
+  } else {
+    btnLangToggle.style.display = 'none';
+  }
+}
+
+function updateSpeedToggleUI() {
+  if (!btnSpeedToggle) return;
+  if (ttsSpeed >= 0.8) {
+    btnSpeedToggle.textContent = '🐇';
+    btnSpeedToggle.title = 'Kecepatan Suara: Normal (Klik untuk mode Lambat 🐢)';
+  } else {
+    btnSpeedToggle.textContent = '🐢';
+    btnSpeedToggle.title = 'Kecepatan Suara: Lambat (Klik untuk mode Normal 🐇)';
+  }
+}
+
+if (btnLangToggle) {
+  btnLangToggle.onclick = () => {
+    triggerHaptic('tap');
+    currentStoryLang = (currentStoryLang === 'en') ? 'id' : 'en';
+    updateLangToggleUI();
+    // Render ulang halaman saat ini dengan bahasa baru tanpa membalik halaman
+    renderStoryPageContent(currentPage, isAutoPlay);
+  };
+}
+
+if (btnSpeedToggle) {
+  btnSpeedToggle.onclick = () => {
+    triggerHaptic('tap');
+    ttsSpeed = (ttsSpeed >= 0.8) ? 0.55 : 0.85;
+    updateSpeedToggleUI();
+  };
+}
+
+// 13. BUKA CERITA & KEMBALI
 function openStory(story) {
-  currentStory = story; currentPage = 0; inQuizMode = false;
+  currentStory = story; 
+  currentPage = 0; 
+  inQuizMode = false;
+  
+  // Tentukan bahasa awal cerita
+  currentStoryLang = story.defaultLang || (story.lang && story.lang.startsWith('en') ? 'en' : 'id');
+
   if (!document.fullscreenElement) {
     const docElm = document.documentElement;
     if (docElm.requestFullscreen) docElm.requestFullscreen().catch(() => {});
   }
-  lockScreenOrientation(); triggerHaptic('tap');
-  preloadStoryImages(story); preloadStoryAudios(story);
-  homeView.style.display = 'none'; readerView.style.display = 'flex';
-  bookStage.style.display = 'flex'; navControls.style.display = 'flex'; quizView.style.display = 'none';
-  getAudioContext(); updateAutoPlayUI(); updateHapticUI();
+  lockScreenOrientation(); 
+  triggerHaptic('tap');
+  
+  preloadStoryImages(story); 
+  preloadStoryAudios(story);
+  
+  homeView.style.display = 'none'; 
+  readerView.style.display = 'flex';
+  bookStage.style.display = 'flex'; 
+  navControls.style.display = 'flex'; 
+  quizView.style.display = 'none';
+  
+  getAudioContext(); 
+  updateAutoPlayUI(); 
+  updateHapticUI();
+  updateLangToggleUI();
+  updateSpeedToggleUI();
+  
   renderStoryPageContent(currentPage, isAutoPlay);
 }
 
 function returnToHome() {
-  triggerHaptic('tap'); audioElement.pause(); btnPageAudio.classList.remove('playing');
+  triggerHaptic('tap'); 
+  audioElement.pause(); 
+  btnPageAudio.classList.remove('playing');
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-  readerView.style.display = 'none'; homeView.style.display = 'flex'; currentStory = null; renderHomeShelf();
+  readerView.style.display = 'none'; 
+  homeView.style.display = 'flex'; 
+  currentStory = null; 
+  renderHomeShelf();
 }
 
 if (btnBackHome) btnBackHome.onclick = returnToHome;
 if (btnFinishToHome) btnFinishToHome.onclick = returnToHome;
 
-// 13. RENDER KONTEN BUKU
+// 14. RENDER KONTEN BUKU (MENDUKUNG DUAL-LANGUAGE & TOOLTIP KOSAKATA)
 function renderStoryPageContent(index, autoPlayAudio = false) {
   if (!currentStory || !currentStory.pages || !currentStory.pages[index]) return;
   const pageData = currentStory.pages[index];
 
-  audioElement.pause(); audioElement.currentTime = 0; btnPageAudio.classList.remove('playing');
+  audioElement.pause(); 
+  audioElement.currentTime = 0; 
+  btnPageAudio.classList.remove('playing');
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
   storyImage.src = pageData.image;
 
-  if (pageData.audio) {
-    audioElement.src = pageData.audio; audioElement.preload = 'auto';
+  // Pilih berkas audio narasi sesuai bahasa aktif
+  const activeAudio = (currentStoryLang === 'id' && pageData.audio_id) ? pageData.audio_id : pageData.audio;
+
+  if (activeAudio) {
+    audioElement.src = activeAudio; 
+    audioElement.preload = 'auto';
     if (autoPlayAudio && isAutoPlay) {
       const playPromise = audioElement.play();
       if (playPromise !== undefined) playPromise.then(() => { btnPageAudio.classList.add('playing'); }).catch(() => {});
@@ -406,12 +488,48 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
     audioElement.removeAttribute('src');
   }
 
+  // Pilih teks bacaan sesuai bahasa aktif
+  const activeText = (currentStoryLang === 'id' && pageData.text_id) ? pageData.text_id : (pageData.text || '');
+
   textFlow.innerHTML = '';
-  const words = (pageData.text || '').split(' ');
+  const words = activeText.split(' ');
   words.forEach(word => {
     if (!word) return;
-    const span = document.createElement('span'); span.className = 'clickable-word'; span.textContent = word;
-    span.onclick = () => speakWord(word, span); textFlow.appendChild(span);
+
+    // Bersihkan karakter baca untuk pencocokan kamus
+    const cleanKey = word.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
+    
+    // Bungkus kata
+    const wrapper = document.createElement('div');
+    wrapper.className = 'word-wrapper';
+
+    const span = document.createElement('span'); 
+    span.className = 'clickable-word'; 
+    span.textContent = word;
+    
+    // Tampilkan arti jika ada di kamus vocab cerita
+    const hasTranslation = currentStoryLang === 'en' && pageData.vocab && pageData.vocab[cleanKey];
+
+    span.onclick = () => {
+      speakWord(word, span);
+
+      // Munculkan balon tooltip arti kata
+      if (hasTranslation) {
+        // Hapus tooltip lama jika ada
+        document.querySelectorAll('.vocab-tooltip').forEach(t => t.remove());
+
+        const tip = document.createElement('div');
+        tip.className = 'vocab-tooltip';
+        tip.textContent = pageData.vocab[cleanKey];
+        wrapper.appendChild(tip);
+
+        // Hilang otomatis setelah 2.5 detik
+        setTimeout(() => tip.remove(), 2500);
+      }
+    };
+
+    wrapper.appendChild(span);
+    textFlow.appendChild(wrapper);
   });
 
   const totalPages = currentStory.pages.length;
@@ -424,11 +542,12 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
   btnNext.textContent = isLastPage ? (hasQuiz ? 'Ikuti Kuis 🎯' : 'Selesai 🏁') : 'Balik Halaman';
 }
 
-// 14. ANIMASI BALIK HALAMAN SINKRON
+// 15. ANIMASI BALIK HALAMAN SINKRON
 function turnPage(direction) {
   if (isFlipping) return;
   isFlipping = true;
-  playPageTurnSound(); triggerHaptic('tap');
+  playPageTurnSound(); 
+  triggerHaptic('tap');
   const outClass = (direction === 'next') ? 'flip-out-left' : 'flip-out-right';
   const inClass = (direction === 'next') ? 'flip-in-right' : 'flip-in-left';
   pageSheet.classList.remove('flip-in-right', 'flip-in-left');
@@ -437,12 +556,13 @@ function turnPage(direction) {
   setTimeout(() => {
     direction === 'next' ? currentPage++ : currentPage--;
     renderStoryPageContent(currentPage, isAutoPlay);
-    pageSheet.classList.remove(outClass); pageSheet.classList.add(inClass);
+    pageSheet.classList.remove(outClass); 
+    pageSheet.classList.add(inClass);
     setTimeout(() => { pageSheet.classList.remove(inClass); isFlipping = false; }, 200);
   }, 180);
 }
 
-// 15. SUARA KATA (TTS DENGAN DETEKSI BAHASA OTOMATIS)
+// 16. SUARA KATA (TTS DENGAN DETEKSI BAHASA & KECEPATAN ADAPTIF)
 function speakWord(word, element) {
   if (!('speechSynthesis' in window)) return;
   triggerHaptic('tap'); 
@@ -453,12 +573,12 @@ function speakWord(word, element) {
   const cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
   const utterance = new SpeechSynthesisUtterance(cleanWord);
 
-  // Deteksi bahasa dari cerita yang sedang aktif (default: id-ID)
-  const targetLang = (currentStory && currentStory.lang) ? currentStory.lang : 'id-ID';
+  // Bahasa TTS otomatis mengikuti bahasa aktif cerita saat ini
+  const targetLang = (currentStoryLang === 'en') ? 'en-US' : 'id-ID';
   utterance.lang = targetLang;
-  utterance.rate = 0.85;
+  utterance.rate = ttsSpeed; // Kecepatan dinamis (Kelinci 0.85 / Kura-kura 0.55)
 
-  // Pilih profil suara peramban yang cocok dengan target bahasa
+  // Pilih engine suara yang sesuai
   const voices = window.speechSynthesis.getVoices();
   const matchedVoice = voices.find(v => 
     v.lang.toLowerCase() === targetLang.toLowerCase() || 
@@ -474,16 +594,20 @@ function speakWord(word, element) {
   window.speechSynthesis.speak(utterance);
 }
 
-// 16. TOMBOL SPEAKER MANUAL
+// 17. TOMBOL SPEAKER MANUAL
 btnPageAudio.onclick = () => {
   triggerHaptic('tap');
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-  if (audioElement.paused) { audioElement.play().then(() => { btnPageAudio.classList.add('playing'); }).catch(err => console.warn(err)); } 
-  else { audioElement.pause(); btnPageAudio.classList.remove('playing'); }
+  if (audioElement.paused) { 
+    audioElement.play().then(() => { btnPageAudio.classList.add('playing'); }).catch(err => console.warn(err)); 
+  } else { 
+    audioElement.pause(); 
+    btnPageAudio.classList.remove('playing'); 
+  }
 };
 audioElement.onended = () => { btnPageAudio.classList.remove('playing'); };
 
-// 17. GESTURE SWIPE TOUCH
+// 18. GESTURE SWIPE TOUCH
 let touchStartX = 0; let touchStartY = 0;
 bookStage.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }, { passive: true });
 bookStage.addEventListener('touchend', (e) => {
@@ -504,7 +628,7 @@ function handleNextAction() {
 btnNext.onclick = handleNextAction;
 btnPrev.onclick = () => { if (currentPage > 0) turnPage('prev'); };
 
-// 18. KUIS PEMAHAMAN
+// 19. KUIS PEMAHAMAN
 function startQuiz() {
   inQuizMode = true; currentQuizIndex = 0; quizScore = 0; correctCount = 0;
   triggerHaptic('tap'); audioElement.pause(); if ('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -555,7 +679,7 @@ function showQuizResult() {
 
 if (btnRestartStory) { btnRestartStory.onclick = () => { triggerHaptic('tap'); inQuizMode = false; currentPage = 0; quizView.style.display = 'none'; bookStage.style.display = 'flex'; navControls.style.display = 'flex'; renderStoryPageContent(currentPage, isAutoPlay); }; }
 
-// 19. MODE MALAM
+// 20. MODE MALAM
 function applyTheme(isDark) {
   document.body.classList.toggle('dark-mode', isDark);
   if (btnThemeToggleHome) btnThemeToggleHome.textContent = isDark ? '☀️' : '🌙';
@@ -568,7 +692,7 @@ if (btnThemeToggleHome) btnThemeToggleHome.onclick = toggleTheme;
 if (btnThemeToggleReader) btnThemeToggleReader.onclick = toggleTheme;
 if (localStorage.getItem('storybook_theme') === 'dark') { applyTheme(true); }
 
-// 20. INDIKATOR JARINGAN
+// 21. INDIKATOR JARINGAN
 function updateNetworkStatus() {
   if (!networkStatus) return;
   const isOnline = navigator.onLine;
@@ -579,44 +703,27 @@ function updateNetworkStatus() {
 window.addEventListener('online', () => { updateNetworkStatus(); triggerHaptic('tap'); });
 window.addEventListener('offline', () => { updateNetworkStatus(); triggerHaptic('wrong'); });
 
-// ================================================================
-// 21. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT PURE)
-// ================================================================
+// 22. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT PURE)
 let deferredPrompt = null;
 
-// Sembunyikan banner sejak awal. Hanya muncul saat sistem siap 1-Klik.
 if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
 
-// Event ini HANYA ditembakkan oleh Chrome/Android saat syarat PWA komplit.
 window.addEventListener('beforeinstallprompt', (e) => {
-  // Cegah browser menampilkan mini-infobar instalasi bawaannya
   e.preventDefault();
-  
-  // Tangkap event bawaan sistem ke variabel
   deferredPrompt = e;
-
-  // BARU TAMPILKAN BANNER karena sistem dijamin 100% siap untuk 1-Klik
   if (pwaInstallBanner) pwaInstallBanner.style.display = 'flex';
 });
 
-// Fungsi Eksekusi
 async function executePwaInstall() {
   triggerHaptic('tap');
+  if (!deferredPrompt) return;
 
-  if (!deferredPrompt) return; // Jika kosong, batalkan klik (aman tanpa pesan alert manual)
-
-  // 1-CLICK: Langsung panggil dialog "Instal Aplikasi" resmi dari bawah layar HP
   deferredPrompt.prompt();
-
-  // Tunggu siswa menekan "Instal" atau "Batal"
   const { outcome } = await deferredPrompt.userChoice;
   
   if (outcome === 'accepted') {
-    // Sembunyikan banner jika siswa setuju memasang
     if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
   }
-
-  // Kosongkan agar tidak terpanggil ulang secara paksa
   deferredPrompt = null;
 }
 
@@ -629,17 +736,20 @@ if (btnCloseInstallBanner) {
   };
 }
 
-// Hilangkan banner secara otomatis bila Chrome mengabari bahwa web sudah terinstal
 window.addEventListener('appinstalled', () => {
   if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
   deferredPrompt = null;
   triggerHaptic('celebrate');
 });
 
-// 22. INISIALISASI
+// 23. INISIALISASI
 window.addEventListener('DOMContentLoaded', () => {
   renderHomeShelf();
   updateAutoPlayUI();
   updateHapticUI();
   updateNetworkStatus();
+  // Muat daftar suara TTS browser
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+  }
 });
