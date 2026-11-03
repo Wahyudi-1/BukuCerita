@@ -28,7 +28,7 @@ body.dark-mode {
   --option-bg: #27354a;
 }
 
-/* Selektor Universal (Reset Dasar) */
+/* ================= SELEKTOR UNIVERSAL (RESET DASAR) ================= */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -216,20 +216,6 @@ body.dark-mode .network-badge.offline {
 
 .header-tools { display: flex; align-items: center; gap: 6px; }
 
-/* Tombol Instalasi di Header */
-.btn-install-tool {
-  background: #ecfdf5 !important;
-  color: #059669 !important;
-  border-color: #6ee7b7 !important;
-  box-shadow: 0 3px 0 #10b981 !important;
-  animation: bounceInstall 1.5s infinite;
-}
-
-@keyframes bounceInstall {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
-}
-
 .stories-grid { display: flex; flex-direction: column; gap: 14px; }
 
 .story-card-item {
@@ -302,6 +288,21 @@ body.dark-mode .story-history-badge {
 }
 
 .btn-tool:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--border); }
+
+/* Tombol Khusus Fitur Dwibahasa & Kecepatan Suara */
+#btnLangToggle {
+  font-size: 0.82rem;
+  font-weight: 800;
+  width: auto;
+  min-width: 54px;
+  padding: 0 10px;
+  color: var(--accent);
+  border-color: var(--accent-border);
+}
+
+#btnSpeedToggle {
+  font-size: 1.15rem;
+}
 
 /* Status Sakelar Nonaktif */
 .btn-tool.autoplay-off, .btn-tool.haptic-off {
@@ -414,13 +415,21 @@ body.dark-mode .btn-tool.autoplay-off, body.dark-mode .btn-tool.haptic-off {
 
 @keyframes pulseBtn { from { transform: scale(1); } to { transform: scale(1.05); } }
 
+/* ================= KATA INTERAKTIF & BALON ARTI (VOCAB TOOLTIP) ================= */
 .text-flow {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 8px;
+  gap: 8px 8px;
   font-size: 1.25rem;
   font-weight: 700;
-  line-height: 1.6;
+  line-height: 1.7;
+}
+
+.word-wrapper {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .clickable-word {
@@ -428,11 +437,74 @@ body.dark-mode .btn-tool.autoplay-off, body.dark-mode .btn-tool.haptic-off {
   padding: 2px 6px;
   border-radius: 8px;
   border-bottom: 2px dashed var(--word-dash);
+  transition: transform 0.1s ease, background-color 0.15s ease;
 }
 
-.clickable-word:hover { background-color: rgba(28, 176, 246, 0.15); color: var(--accent); border-bottom-color: var(--accent); }
-.clickable-word:active, .clickable-word.speaking { background-color: rgba(28, 176, 246, 0.3); color: var(--accent); border-bottom-style: solid; transform: scale(0.94); }
+.clickable-word:hover {
+  background-color: rgba(28, 176, 246, 0.15);
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
 
+.clickable-word:active, .clickable-word.speaking {
+  background-color: rgba(28, 176, 246, 0.3);
+  color: var(--accent);
+  border-bottom-style: solid;
+  transform: scale(0.94);
+}
+
+/* Balon Terjemahan Kata */
+.vocab-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  background: #1e293b;
+  color: #38bdf8;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 4px 9px;
+  border-radius: 8px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  animation: popTooltip 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 100;
+}
+
+.vocab-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #1e293b transparent transparent transparent;
+}
+
+@keyframes popTooltip {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(0) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-6px) scale(1);
+  }
+}
+
+body.dark-mode .vocab-tooltip {
+  background: #0f172a;
+  color: #7dd3fc;
+  border: 1px solid #334155;
+}
+
+body.dark-mode .vocab-tooltip::after {
+  border-color: #0f172a transparent transparent transparent;
+}
+
+/* ================= KONTROL TOMBOL NAVIGASI BAWAH ================= */
 .action-controls { display: flex; gap: 12px; padding: 4px 0; }
 .btn-action { flex: 1; padding: 16px; font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; border-radius: 18px; border: none; cursor: pointer; }
 .btn-action-prev { background-color: var(--paper); color: var(--text-sub); border: 2px solid var(--border); box-shadow: 0 4px 0 var(--border); }
@@ -478,96 +550,3 @@ body.dark-mode .btn-tool.autoplay-off, body.dark-mode .btn-tool.haptic-off {
 
 /* Overlay Konfeti */
 #confettiCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 99999; display: none; }
-
-/* ================= MODAL PETUNJUK INSTALASI ================= */
-.install-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  z-index: 100000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  animation: fadeInModal 0.25s ease;
-}
-
-@keyframes fadeInModal {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.install-modal-box {
-  background: var(--paper);
-  border: 2px solid var(--border);
-  border-radius: 24px;
-  width: 100%;
-  max-width: 440px;
-  padding: 22px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  animation: scaleUpModal 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes scaleUpModal {
-  from { transform: scale(0.9); }
-  to { transform: scale(1); }
-}
-
-.install-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 2px solid var(--border);
-  padding-bottom: 12px;
-}
-
-.install-modal-header h3 {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--text);
-  margin-left: 8px;
-  flex: 1;
-}
-
-.btn-close-modal {
-  background: transparent;
-  border: none;
-  font-size: 1.25rem;
-  color: var(--text-sub);
-  cursor: pointer;
-  padding: 4px;
-}
-
-.install-modal-body {
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: var(--text);
-}
-
-.guide-step {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.step-number {
-  background: var(--primary);
-  color: white;
-  font-weight: 800;
-  border-radius: 50%;
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 0.85rem;
-}
