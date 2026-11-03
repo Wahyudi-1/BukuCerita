@@ -19,8 +19,8 @@ window.STORIES_DATABASE.push({
 
   highlightTheme: {
     bg: "linear-gradient(135deg, #fef08a, #fed7aa)", // Kuning cerah matahari ke oranye pastel
-    text: "#854d0e",                                  // Teks cokelat hangat
-    border: "#eab308",                                // Garis bawah kuning emas
+    text: "#854d0e",                                 // Teks cokelat hangat
+    border: "#eab308",                               // Garis bawah kuning emas
     shadow: "rgba(234, 179, 8, 0.45)"                // Kilau kuning hangat
   },
 
@@ -239,6 +239,42 @@ window.STORIES_DATABASE.push({
 
   quiz: [
     {
+      q: "Siapa nama teman yang mengajak kita bertualang mengenal kendaraan darat? (Who is our friend exploring land vehicles?)",
+      options: [
+        "Lala (Lala)",
+        "Mimi (Mimi)",
+        "Budi (Budi)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Berapa jumlah roda pada sepeda Lala? (How many wheels does a bicycle have?)",
+      options: [
+        "Satu roda (One wheel)",
+        "Dua roda (Two wheels)",
+        "Empat roda (Four wheels)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Bagaimana cara mendorong skuter saat dimainkan? (How do you push a scooter?)",
+      options: [
+        "Memakai kedua tangan (Using both hands)",
+        "Satu kaki di atas papan, satu kaki mendorong tanah (One foot on the deck, one foot pushes the ground)",
+        "Sambil duduk terlentang (Lying down)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Pengendara sepeda motor harus memakai apa di kepala agar aman? (What must a motorcycle rider wear for safety?)",
+      options: [
+        "Topi ulang tahun (Birthday hat)",
+        "Helm pelindung (Safety helmet)",
+        "Mahkota raja (King crown)"
+      ],
+      answer: 1
+    },
+    {
       q: "Apa yang harus kita pasang saat duduk di dalam mobil keluarga? (What should we wear inside the car?)",
       options: [
         "Sabuk pengaman (Seatbelt)",
@@ -248,13 +284,40 @@ window.STORIES_DATABASE.push({
       answer: 0
     },
     {
-      q: "Kendaraan darat apa yang berjalan di atas rel besi panjang? (Which vehicle moves on long steel tracks?)",
+      q: "Mobil taksi pada cerita Lala berwarna apa? (What color is the taxi car in the story?)",
       options: [
-        "Sepeda (Bicycle)",
-        "Kereta api (Train)",
-        "Skuter (Scooter)"
+        "Biru (Blue)",
+        "Kuning (Yellow)",
+        "Hijau (Green)"
       ],
       answer: 1
+    },
+    {
+      q: "Kendaraan besar apa yang memiliki pintu otomatis dan membawa banyak penumpang? (Which big vehicle carries many passengers?)",
+      options: [
+        "Bus kota (City bus)",
+        "Sepeda (Bicycle)",
+        "Skuter (Scooter)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Kendaraan berwarna kuning ceria apa yang menjemput anak-anak ke sekolah? (Which vehicle takes children to school?)",
+      options: [
+        "Bus sekolah (School bus)",
+        "Perahu (Boat)",
+        "Pesawat (Airplane)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Kendaraan apa yang membawa barang di bak belakangnya dan memiliki roda yang besar? (Which vehicle carries cargo in its open bed?)",
+      options: [
+        "Truk besar (Big truck)",
+        "Sepeda (Bicycle)",
+        "Becak (Pedicab)"
+      ],
+      answer: 0
     },
     {
       q: "Kendaraan apa yang berwarna merah gagah dan bertugas memadamkan api? (Which red vehicle helps fight fires?)",
@@ -266,6 +329,15 @@ window.STORIES_DATABASE.push({
       answer: 2
     },
     {
+      q: "Kendaraan penolong apa yang membawa orang sakit ke rumah sakit? (Which vehicle helps carry sick people?)",
+      options: [
+        "Mobil ambulans (Ambulance)",
+        "Mobil balap (Racing car)",
+        "Truk molen (Concrete mixer truck)"
+      ],
+      answer: 0
+    },
+    {
       q: "Berapa jumlah roda pada becak tradisional Lala? (How many wheels does a pedicab have?)",
       options: [
         "Dua roda (Two wheels)",
@@ -273,6 +345,33 @@ window.STORIES_DATABASE.push({
         "Delapan roda (Eight wheels)"
       ],
       answer: 1
+    },
+    {
+      q: "Kendaraan darat apa yang berjalan di atas rel besi panjang? (Which vehicle moves on long steel tracks?)",
+      options: [
+        "Sepeda (Bicycle)",
+        "Kereta api (Train)",
+        "Skuter (Scooter)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Kereta apa yang meluncur sangat cepat dan modern tanpa suara bising? (Which train glides super fast without loud noise?)",
+      options: [
+        "Kereta cepat modern (High-speed train)",
+        "Kereta kuda (Horse carriage)",
+        "Mobil dorong (Push cart)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Semua kendaraan yang ada di cerita Lala berjalan di mana? (Where do all the vehicles in Lala's story travel?)",
+      options: [
+        "Di udara (In the air)",
+        "Di atas air (On the water)",
+        "Di darat (On land)"
+      ],
+      answer: 2
     }
   ]
 });
