@@ -4,7 +4,7 @@ window.STORIES_DATABASE.push({
   id: "aisyah-merapikan",
   title: "Kebiasaan Merapikan Aisyah",
   lang: "id-ID", // Otomatis mengaktifkan pelafalan bahasa Indonesia
-  category: "Fase Fondasi / A",
+  category: "Fase Fondasi / TK B",
   cover: "./images/aisyah/Aisyah%2001_compressed.jpg",
   description: "Kisah Aisyah yang selalu merapikan barang-barang yang selesai digunakan.",
   pages: [
@@ -131,24 +131,139 @@ window.STORIES_DATABASE.push({
   ],
   quiz: [
     {
-      q: "Mengapa krayon harus langsung dimasukkan kembali ke kotaknya setelah menggambar?",
-      options: ["Agar tidak patah atau hilang", "Agar warnanya bertambah banyak", "Agar bisa dibuang"],
+      q: "Siapa nama tokoh utama dalam cerita ini? (Who is the main character in this story?)",
+      options: [
+        "Aisyah (Aisyah)",
+        "Mimi (Mimi)",
+        "Lala (Lala)"
+      ],
       answer: 0
     },
     {
-      q: "Ke mana kepingan balok kayu dirapikan setelah selesai bermain?",
-      options: ["Dilemparkan ke luar jendela", "Dimasukkan ke keranjang mainan", "Dibiarkan berserakan di lantai"],
+      q: "Gambar apa yang dibuat oleh Aisyah saat mewarnai dengan krayon? (What drawing did Aisyah make with crayons?)",
+      options: [
+        "Gambar rumah (House drawing)",
+        "Gambar pelangi (Rainbow drawing)",
+        "Gambar mobil (Car drawing)"
+      ],
       answer: 1
     },
     {
-      q: "Di mana Aisyah meletakkan gelas kosong setelah meminum air putih?",
-      options: ["Di bawah kasur", "Di atas meja belajar", "Di wastafel"],
+      q: "Mengapa krayon harus dimasukkan kembali ke kotaknya setelah selesai digunakan? (Why put crayons back into the box?)",
+      options: [
+        "Agar tidak patah atau hilang (So they don't break or get lost)",
+        "Agar warnanya berubah (To change their colors)",
+        "Agar bisa dibuang (So they can be thrown away)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Bagaimana keadaan meja belajar Aisyah setelah krayon dirapikan? (How does the study table look after tidying up?)",
+      options: [
+        "Kotor dan penuh debu (Dirty and dusty)",
+        "Bersih dan lapang (Clean and spacious)",
+        "Berantakan (Messy)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Bangunan apa yang dibuat Aisyah dari kepingan balok kayu? (What does Aisyah build using wooden blocks?)",
+      options: [
+        "Jembatan (Bridge)",
+        "Menara istana yang tinggi (Tall castle tower)",
+        "Kandang kelinci (Rabbit cage)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Ke mana kepingan balok kayu dirapikan setelah selesai bermain? (Where are wooden blocks put after playing?)",
+      options: [
+        "Dimasukkan ke keranjang mainan (Put into the toy basket)",
+        "Dilemparkan ke luar jendela (Thrown out the window)",
+        "Dibiarkan berserakan di lantai (Left scattered on the floor)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Mengapa mainan balok kayu tidak boleh dibiarkan berserakan di lantai? (Why shouldn't blocks be left on the floor?)",
+      options: [
+        "Agar tidak ada yang tersandung (So no one trips)",
+        "Agar balok bisa terbang (So blocks can fly)",
+        "Agar lantai menjadi basah (To make the floor wet)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Minuman apa yang diminum Aisyah saat merasa haus? (What drink does Aisyah have when she feels thirsty?)",
+      options: [
+        "Es krim (Ice cream)",
+        "Sirup manis (Sweet syrup)",
+        "Air putih segar (Fresh plain water)"
+      ],
       answer: 2
     },
     {
-      q: "Apa pujian yang diucapkan Ibu saat melihat rumah yang tertata rapi?",
-      options: ["MasyaAllah, Aisyah pintar sekali!", "Aisyah jangan beres-beres lagi", "Rumahnya masih berantakan"],
+      q: "Di mana Aisyah meletakkan gelas kosong setelah meminum air putih? (Where does Aisyah put the empty glass after drinking?)",
+      options: [
+        "Di bawah kasur (Under the bed)",
+        "Di wastafel (In the sink)",
+        "Di atas meja belajar (On the study desk)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Dari mana Aisyah mengambil buku cerita saat sore hari? (Where does Aisyah take her storybook from?)",
+      options: [
+        "Dari rak buku (From the bookshelf)",
+        "Dari dalam tas sekolah (From inside the school bag)",
+        "Dari lemari pakaian (From the wardrobe)"
+      ],
       answer: 0
+    },
+    {
+      q: "Apa yang dilakukan Aisyah setelah selesai membaca buku cerita? (What does Aisyah do after reading the storybook?)",
+      options: [
+        "Membiarkan buku terinjak di lantai (Leaving the book on the floor to be stepped on)",
+        "Menutup buku dan mengembalikannya ke rak (Closing the book and returning it to the rack)",
+        "Mencoret-coret halaman buku (Scribbling on book pages)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Di mana Aisyah meletakkan sandal rumahnya setelah berjalan dari teras? (Where are sandals placed after use on the porch?)",
+      options: [
+        "Sejajar di rak sepatu (Parallel on the shoe rack)",
+        "Di dalam kamar mandi (Inside the bathroom)",
+        "Di atas meja makan (On the dining table)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Apa pujian yang diucapkan Ibu saat melihat rumah tertata rapi? (What compliment does Mom give when seeing the neat house?)",
+      options: [
+        "\"MasyaAllah, Aisyah pintar sekali!\" (\"MasyaAllah, Aisyah is so smart!\")",
+        "\"Aisyah jangan beres-beres lagi!\" (\"Aisyah, don't tidy up anymore!\")",
+        "\"Rumahnya masih berantakan!\" (\"The house is still messy!\")"
+      ],
+      answer: 0
+    },
+    {
+      q: "Bagaimana perasaan semua orang ketika rumah dalam keadaan rapi dan tertata? (How does everyone feel when the house is neat?)",
+      options: [
+        "Merasa sedih dan bosan (Feel sad and bored)",
+        "Terasa nyaman, tenang, dan senang (Feels comfortable, calm, and happy)",
+        "Merasa marah (Feel angry)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Pesan kebiasaan baik apa yang diajarkan dalam cerita Aisyah? (What good habit lesson is taught in Aisyah's story?)",
+      options: [
+        "Meninggalkan mainan berserakan (Leaving toys scattered)",
+        "Selalu merapikan barang yang selesai digunakan (Always tidying up items after use)",
+        "Membuang barang ke lantai (Throwing items on the floor)"
+      ],
+      answer: 1
     }
   ]
 });
