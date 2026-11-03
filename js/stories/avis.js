@@ -131,19 +131,139 @@ window.STORIES_DATABASE.push({
   ],
   quiz: [
     {
-      q: "Apa yang sedang dibuat oleh Avis menggunakan balok kayu?",
-      options: ["Menara Istana", "Jembatan Kereta", "Kapal Terbang"],
+      q: "Di mana lokasi tempat Avis dan teman-temannya bersekolah? (Where is Avis's school located?)",
+      options: [
+        "TK Bintang Ceria (Bintang Ceria Kindergarten)",
+        "Taman Kota (City Park)",
+        "Pasar Malam (Night Market)"
+      ],
       answer: 0
     },
     {
-      q: "Apa yang dilakukan Avis saat dadanya terasa sesak karena marah?",
-      options: ["Menangis kencang", "Menarik dan menghembuskan napas perlahan", "Melempar mainan"],
+      q: "Warna apa karpet empuk yang ada di sudut tempat bermain balok? (What color is the soft carpet in the play corner?)",
+      options: [
+        "Karpet hijau (Green carpet)",
+        "Karpet biru (Blue carpet)",
+        "Karpet kuning (Yellow carpet)"
+      ],
       answer: 1
     },
     {
-      q: "Bagaimana cara Avis dan Bimo berbaikan kembali?",
-      options: ["Saling memaafkan dan tos bersama", "Pulang ke rumah masing-masing", "Bermain sendiri-sendiri"],
+      q: "Apa yang ingin dibuat oleh Avis menggunakan balok-balok kayu? (What does Avis want to build with wooden blocks?)",
+      options: [
+        "Kapal laut (Ship)",
+        "Menara istana yang tinggi (High castle tower)",
+        "Rel kereta (Train track)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Mainan apa yang dibawa Bimo saat masuk ke dalam kelas? (What toy does Bimo bring into the classroom?)",
+      options: [
+        "Mobil-mobilan kayu merah (Red wooden toy car)",
+        "Bola basket (Basketball)",
+        "Boneka beruang (Teddy bear)"
+      ],
       answer: 0
+    },
+    {
+      q: "Balok warna dan bentuk apa yang ingin dipinjam oleh Bimo untuk garasinya? (Which block does Bimo want to borrow for his garage?)",
+      options: [
+        "Balok kubus biru (Blue cube block)",
+        "Balok segitiga merah (Red triangle block)",
+        "Balok lingkaran kuning (Yellow circle block)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Apa yang terjadi pada menara istana Avis saat mereka saling tarik balok? (What happens to Avis's tower during the struggle?)",
+      options: [
+        "Makin tinggi (Grows taller)",
+        "Roboh berantakan (Collapses into ruins)",
+        "Berubah jadi mobil (Turns into a car)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Bagaimana posisi duduk Avis dan Bimo setelah menara balok roboh? (How do Avis and Bimo sit after arguing?)",
+      options: [
+        "Duduk saling membelakangi (Sitting back-to-back)",
+        "Bergandengan tangan (Holding hands)",
+        "Bermain bersama (Playing together)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Bagaimana suasana ruang bermain saat Avis dan Bimo saling diam? (How does the playroom feel when they are silent?)",
+      options: [
+        "Sangat ramai (Very crowded)",
+        "Terasa sangat sunyi (Feels very silent)",
+        "Banyak musik (Lots of music)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Apa yang dirasakan Avis di dadanya saat sedang merasa marah? (What does Avis feel in his chest when angry?)",
+      options: [
+        "Rasanya dingin (Feels cold)",
+        "Rasanya sesak dan bikin capek (Feels tight and tiring)",
+        "Rasanya gatal (Feels itchy)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Apa nasihat Bu Guru yang diingat Avis untuk meredakan rasa amarah? (What teacher's advice does Avis remember to calm down?)",
+      options: [
+        "Berteriak lebih keras (Shout louder)",
+        "Tarik napas dalam-dalam dan hembuskan perlahan (Take a deep breath and exhale slowly)",
+        "Melempar mainan (Throw toys)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Apa yang dilakukan Avis saat menghampiri Bimo dengan hati yang lega? (What does Avis do when approaching Bimo?)",
+      options: [
+        "Meminta maaf dengan tulus (Apologizing sincerely)",
+        "Menyembunyikan balok (Hiding the block)",
+        "Menangis keras (Crying loudly)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Bagaimana sikap Bimo saat Avis meminta maaf kepadanya? (How does Bimo react when Avis apologizes?)",
+      options: [
+        "Marah lagi (Gets angry again)",
+        "Tersenyum lega dan ikut meminta maaf (Smiles with relief and apologizes too)",
+        "Lari keluar kelas (Runs out of class)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Gerakan apa yang dilakukan Avis dan Bimo saat rasa kesal mereka sudah hilang? (What gesture do Avis and Bimo do after making up?)",
+      options: [
+        "Tos telapak tangan (High-five)",
+        "Saling mendorong (Pushing each other)",
+        "Tidur di karpet (Sleeping on the carpet)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Ide hebat apa yang disepakati Avis dan Bimo untuk balok mainan mereka? (What great idea do Avis and Bimo agree on?)",
+      options: [
+        "Menggabungkan istana dan garasi (Combining castle and garage)",
+        "Merusakkan semua mainan (Destroying all toys)",
+        "Membuang balok ke sampah (Throwing blocks away)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Bagaimana perasaan hati Avis dan Bimo setelah saling memaafkan dan bermain bersama? (How do their hearts feel after forgiving each other?)",
+      options: [
+        "Sedih dan sepi (Sad and lonely)",
+        "Marah dan kesal (Angry and annoyed)",
+        "Secerah pelangi dan gembira (Bright as a rainbow and happy)"
+      ],
+      answer: 2
     }
   ]
 });
