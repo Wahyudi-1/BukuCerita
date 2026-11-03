@@ -23,8 +23,8 @@
 
   <div class="app-container">
 
-    <!-- ================= SATU-SATUNYA TOMBOL INSTAL PWA ================= -->
-    <!-- Akan otomatis muncul jika sistem operasi (Android/Chrome) sudah siap 1-Klik -->
+    <!-- ================= SATU-SATUNYA BANNER INSTAL PWA ================= -->
+    <!-- Otomatis muncul hanya jika sistem browser (Android/Chrome) sudah siap 1-Klik -->
     <div id="pwaInstallBanner" class="pwa-install-banner" style="display: none;">
       <div class="pwa-banner-content">
         <span class="pwa-icon">📲</span>
@@ -69,10 +69,18 @@
       <!-- Top Navigation Bar -->
       <div class="top-bar">
         <button class="btn-tool" id="btnBackHome" title="Kembali ke Beranda">🏠</button>
+        
+        <!-- Tombol Sakelar Dwibahasa (Otomatis muncul jika buku mendukung bilingual) -->
+        <button class="btn-tool" id="btnLangToggle" title="Ganti Bahasa (English / Indonesia)" style="display: none;">🌐 EN</button>
+        
+        <!-- Tombol Pengatur Kecepatan Suara TTS (Normal 🐇 / Lambat 🐢) -->
+        <button class="btn-tool" id="btnSpeedToggle" title="Kecepatan Suara: Normal (Klik untuk Mode Lambat)">🐇</button>
+        
         <button class="btn-tool" id="btnAutoPlayToggle" title="Narasi Otomatis (On/Off)">📢</button>
         <button class="btn-tool" id="btnHapticToggleReader" title="Efek Getar (On/Off)">📳</button>
         <button class="btn-tool" id="btnFullScreenReader" title="Layar Penuh (Full Screen)">⛶</button>
         <button class="btn-tool" id="btnThemeToggleReader" title="Ganti Mode Malam">🌙</button>
+        
         <div class="progress-track">
           <div class="progress-fill" id="progressFill"></div>
         </div>
@@ -128,12 +136,13 @@
 
   <audio id="audioElement"></audio>
 
-  <!-- Daftar Cerita Modular -->
+  <!-- ================= DAFTAR BUKU CERITA MODULAR ================= -->
   <script src="js/stories/arka.js"></script>
   <script src="js/stories/aisyah.js"></script>
-<script src="js/stories/avis.js"></script>
+  <script src="js/stories/avis.js"></script>
   <script src="js/stories/dani&naomi.js"></script>
-  <!-- Mesin Aplikasi Utama -->
+
+  <!-- ================= MESIN APLIKASI UTAMA ================= -->
   <script src="js/app.js"></script>
 
   <!-- Registrasi Service Worker PWA -->
