@@ -282,16 +282,25 @@ window.STORIES_DATABASE.push({
 
   quiz: [
     {
-      q: "Apa ucapan syukur yang diucapkan Kaysa dan Sena saat bangun tidur? (What did they say when waking up?)",
+      q: "Apa ucapan syukur yang diucapkan Kaysa dan Sena saat bangun tidur di pagi hari? (What do Kaysa and Sena say when waking up?)",
       options: [
         "Alhamdulillah",
         "Astagfirullah",
-        "Selamat tinggal"
+        "Selamat tinggal (Goodbye)"
       ],
       answer: 0
     },
     {
-      q: "Anggota tubuh apa yang kita gunakan untuk melihat bunga warna-warni? (What do we use to see flowers?)",
+      q: "Benda langit apa yang membuat dunia menjadi terang benderang di pagi hari? (What makes the world bright in the morning?)",
+      options: [
+        "Bulan (Moon)",
+        "Matahari (Sun)",
+        "Awan (Cloud)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Anggota tubuh apa yang kita gunakan untuk melihat bunga warna-warni dan kupu-kupu? (What body part do we use to see flowers and butterflies?)",
       options: [
         "Telinga (Ears)",
         "Dua mata mungil (Two little eyes)",
@@ -300,22 +309,112 @@ window.STORIES_DATABASE.push({
       answer: 1
     },
     {
-      q: "Apa yang membuat hati kita menjadi lebih gembira pada halaman 14? (What makes us doubly happy?)",
+      q: "Anggota tubuh apa yang digunakan untuk mendengarkan suara burung bernyanyi? (What body part listens to birds singing?)",
       options: [
-        "Menangis sendirian (Crying alone)",
-        "Berbagi nikmat kue dengan teman (Sharing cakes with friends)",
-        "Menyembunyikan mainan (Hiding toys)"
+        "Telinga (Ears)",
+        "Hidung (Nose)",
+        "Mata (Eyes)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Indra apa yang kita gunakan untuk mencium aroma roti lezat yang dipanggang Ibu? (What do we use to smell delicious bread?)",
+      options: [
+        "Kaki (Feet)",
+        "Hidung (Nose)",
+        "Mata (Eyes)"
       ],
       answer: 1
     },
     {
-      q: "Apa yang bersinar indah di langit malam sebelum tidur? (What shines in the night sky?)",
+      q: "Sebelum menikmati sarapan pagi, apa ucapan doa yang dipanjatkan? (What prayer word is said before breakfast?)",
       options: [
-        "Matahari siang (Morning sun)",
-        "Awan petir (Thunderclouds)",
-        "Bulan sabit dan bintang-bintang (Crescent moon and stars)"
+        "Bismillah",
+        "Matahari (Sun)",
+        "Cuit-cuit (Tweet-tweet)"
       ],
-      answer: 2
+      answer: 0
+    },
+    {
+      q: "Anggota tubuh mana yang melangkah lincah mengantar Kaysa dan Sena pergi ke sekolah TK? (Which body part moves us to kindergarten?)",
+      options: [
+        "Tangan (Hands)",
+        "Kaki (Feet)",
+        "Telinga (Ears)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Apa yang digambar oleh sepuluh jari tangan Kaysa dan Sena di atas kertas? (What do the ten fingers draw on paper?)",
+      options: [
+        "Pelangi warna-warni (Colorful rainbow)",
+        "Mobil balap (Racing car)",
+        "Rumah kayu (Wooden house)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Bagaimana ucapan salam ramah yang disampaikan Ibu Guru di sekolah? (How does the teacher greet the students?)",
+      options: [
+        "Assalamu'alaikum",
+        "Selamat tidur (Good night)",
+        "Dada (Goodbye)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Apa karunia dari Allah yang turun dari langit dan menyegarkan tanaman? (What gift from Allah falls from the sky to refresh plants?)",
+      options: [
+        "Air hujan (Cool rain)",
+        "Bintang (Stars)",
+        "Angin malam (Night wind)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Apa yang dirasakan Kaysa dan Sena saat mendapat pelukan hangat dari Ayah dan Ibu? (How do warm hugs from parents feel?)",
+      options: [
+        "Sedih (Sad)",
+        "Hati terasa sejuk dan penuh kasih (Heart feels calm and full of love)",
+        "Marah (Angry)"
+      ],
+      answer: 1
+    },
+    {
+      q: "Apa yang dibagi oleh Kaysa dan Sena kepada teman mereka agar hati makin gembira? (What do they share with their friend?)",
+      options: [
+        "Kue bolu lezat (Delicious sweet cakes)",
+        "Batu (Stones)",
+        "Air hujan (Rainwater)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Mengapa Kaysa dan Sena mandi dengan air bersih pada sore hari? (Why do they take a bath in the evening?)",
+      options: [
+        "Agar badan segar, wangi, dan bebas kuman (To feel fresh, sweet-smelling, and clean)",
+        "Agar baju jadi basah (To get clothes wet)",
+        "Agar bisa berenang (To swim)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Pakaian apa yang dikenakan Kaysa saat beribadah shalat dan bersujud bersama? (What does Kaysa wear when praying together?)",
+      options: [
+        "Mukena putih bersih (Pure white prayer dress)",
+        "Baju renang (Swimsuit)",
+        "Jaket tebal (Thick jacket)"
+      ],
+      answer: 0
+    },
+    {
+      q: "Apa yang terlihat cantik dan berkelip di langit malam sebelum Kaysa dan Sena tidur? (What shines and sparkles in the night sky before sleep?)",
+      options: [
+        "Matahari pagi (Morning sun)",
+        "Bulan sabit dan ribuan bintang (Crescent moon and stars)",
+        "Kupu-kupu (Butterflies)"
+      ],
+      answer: 1
     }
   ]
 });
