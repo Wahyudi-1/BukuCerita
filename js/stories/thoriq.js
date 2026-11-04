@@ -15,7 +15,7 @@ window.STORIES_DATABASE.push({
   title: "Thoriq Belajar Mengikat Sepatu",
   category: "Fase Fondasi / TK A",
   defaultLang: "id",
-  cover: "./images/thoriq-tali-sepatu/thcover_compressed.jpg",
+  cover: "./images/thoriq-tali-sepatu/th01_compressed.jpg",
   description: "Kisah inspiratif Thoriq, siswa kelas 1 SD yang belajar mengikat tali sepatu sendiri. Belajar itu boleh salah, yang terpenting jangan mudah menyerah!",
 
   // Tema warna aksen antarmuka (Biru sepatu dan Kuning tali)
