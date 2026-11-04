@@ -10,6 +10,7 @@ window.STORIES_DATABASE = window.STORIES_DATABASE || [];
 window.STORIES_DATABASE.push({
   id: "belajar-membaca-huruf-alfa",
   title: "Belajar Membaca: Seri Mengenal Huruf bersama Alfa",
+  lang: "id-ID", // Otomatis mengaktifkan pelafalan bahasa Indonesia
   category: "Fase Fondasi / TK A",
   defaultLang: "id",
   cover: "./images/alfa-huruf/cover.jpg",
