@@ -360,8 +360,7 @@ body.dark-mode .story-history-badge {
 }
 
 /* Status Sakelar Nonaktif */
-.btn-tool.autoplay-off, 
-.btn-tool.haptic-off,
+.btn-tool.autoplay-off,
 .btn-tool.karaoke-off {
   background: #fee2e2;
   color: #ef4444;
@@ -370,7 +369,6 @@ body.dark-mode .story-history-badge {
 }
 
 body.dark-mode .btn-tool.autoplay-off, 
-body.dark-mode .btn-tool.haptic-off,
 body.dark-mode .btn-tool.karaoke-off {
   background: #451a1a;
   color: #fca5a5;
