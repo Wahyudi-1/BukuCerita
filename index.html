@@ -24,7 +24,6 @@
   <div class="app-container">
 
     <!-- ================= SATU-SATUNYA BANNER INSTAL PWA ================= -->
-    <!-- Otomatis muncul hanya jika sistem browser (Android/Chrome) sudah siap 1-Klik -->
     <div id="pwaInstallBanner" class="pwa-install-banner" style="display: none;">
       <div class="pwa-banner-content">
         <span class="pwa-icon">📲</span>
@@ -70,11 +69,14 @@
       <div class="top-bar">
         <button class="btn-tool" id="btnBackHome" title="Kembali ke Beranda">🏠</button>
         
-        <!-- Tombol Sakelar Dwibahasa (Otomatis muncul jika buku mendukung bilingual) -->
+        <!-- Tombol Sakelar Dwibahasa -->
         <button class="btn-tool" id="btnLangToggle" title="Ganti Bahasa (English / Indonesia)" style="display: none;">🌐 EN</button>
         
-        <!-- Tombol Pengatur Kecepatan Suara TTS (Normal 🐇 / Lambat 🐢) -->
+        <!-- Tombol Pengatur Kecepatan Suara TTS -->
         <button class="btn-tool" id="btnSpeedToggle" title="Kecepatan Suara: Normal (Klik untuk Mode Lambat)">🐇</button>
+        
+        <!-- Tombol Toggle Animasi Karaoke Teks (On/Off) -->
+        <button class="btn-tool" id="btnKaraokeToggle" title="Animasi Karaoke: AKTIF (Klik untuk mematikan)">🎤 ON</button>
         
         <button class="btn-tool" id="btnAutoPlayToggle" title="Narasi Otomatis (On/Off)">📢</button>
         <button class="btn-tool" id="btnHapticToggleReader" title="Efek Getar (On/Off)">📳</button>
@@ -148,7 +150,7 @@
   <script src="js/stories/lala.js"></script>
   <script src="js/stories/keysa&sena.js"></script>
   <script src="js/stories/alfa.js"></script>
-   <script src="js/stories/hanan.js"></script>
+  <script src="js/stories/hanan.js"></script>
   <script src="js/stories/thoriq.js"></script>
   <script src="js/stories/kenzo.js"></script>
 
