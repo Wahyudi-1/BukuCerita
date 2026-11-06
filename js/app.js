@@ -3,7 +3,7 @@
  * APP.JS - MESIN BUKU CERITA INTERAKTIF TERLENGKAP
  * (OFFLINE DOWNLOADER, RANDOM QUESTION BANK, SHUFFLED OPTIONS,
  *  HIGH-PRECISION 60FPS KARAOKE, TIMING OFFSET CALIBRATION,
- *  EXPLICIT TIMESTAMPS SUPPORT, HYBRID AUDIO DISPATCHER, 1-CLICK PWA)
+ *  TTS WITH GRACEFUL FALLBACK GUIDE, 1-CLICK PWA)
  * ================================================================
  */
 
@@ -22,7 +22,6 @@ let currentWordElements = [];
 let wordTimingThresholds = [];
 let rawWordTimestamps = null;
 let karaokeAnimId = null;
-let wordAudioTimeout = null;
 let availableVoices = [];
 
 const preloadedImages = {};
@@ -37,7 +36,6 @@ const QUIZ_QUESTION_COUNT = 4;
 // Status preferensi pengguna (tersimpan di localStorage)
 let isAutoPlay = localStorage.getItem('storybook_autoplay') !== 'false';
 let isKaraokeEnabled = localStorage.getItem('storybook_karaoke') !== 'false';
-let audioSourceMode = localStorage.getItem('storybook_audio_source') || 'AUTO'; // 'AUTO' | 'MP3' | 'TTS'
 let audioOffsetSec = parseFloat(localStorage.getItem('storybook_audio_offset') || '0.0');
 let currentStoryLang = 'id';
 let ttsSpeed = 0.85;
@@ -89,7 +87,6 @@ const pwaInstallBanner = document.getElementById('pwaInstallBanner');
 const btnInstallPwa = document.getElementById('btnInstallPwa');
 const btnCloseInstallBanner = document.getElementById('btnCloseInstallBanner');
 
-let btnAudioSourceToggle = document.getElementById('btnAudioSourceToggle');
 let btnAudioCalibrate = document.getElementById('btnAudioCalibrate');
 
 // ================================================================
@@ -109,6 +106,7 @@ if ('speechSynthesis' in window) {
   window.speechSynthesis.onvoiceschanged = populateVoices;
 }
 
+// Mekanisme Polling Aktif untuk Android & Safari
 let voicePollCount = 0;
 const voicePollInterval = setInterval(() => {
   voicePollCount++;
@@ -153,6 +151,7 @@ function getBestVoiceForLang(targetLang) {
     });
     if (matched) return matched;
 
+    // Sangat penting: kembalikan null agar tidak meminjam suara bahasa Inggris
     return null;
   } else {
     let matched = availableVoices.find(v => v.lang.replace('_', '-').toLowerCase() === 'en-us');
@@ -543,52 +542,12 @@ if (btnKaraokeToggle) {
 }
 
 // ================================================================
-// 12. SAKELAR SUMBER AUDIO (AUTO / MP3 / TTS) & TOMBOL KALIBRASI
+// 12. MODAL KALIBRASI WAKTU AUDIO (IN-APP OFFSET SLIDER)
 // ================================================================
-
-function updateAudioSourceUI() {
-  if (!btnAudioSourceToggle) return;
-  btnAudioSourceToggle.classList.remove('mode-auto', 'mode-mp3', 'mode-tts');
-
-  if (audioSourceMode === 'AUTO') {
-    btnAudioSourceToggle.classList.add('mode-auto');
-    btnAudioSourceToggle.innerHTML = '⚡ AUTO';
-    btnAudioSourceToggle.title = 'Sumber Suara: Otomatis Cerdas (Beralih ke MP3 jika gawai tidak punya suara ID)';
-  } else if (audioSourceMode === 'MP3') {
-    btnAudioSourceToggle.classList.add('mode-mp3');
-    btnAudioSourceToggle.innerHTML = '🎙️ MP3';
-    btnAudioSourceToggle.title = 'Sumber Suara: Narasi Asli Rekaman (MP3)';
-  } else if (audioSourceMode === 'TTS') {
-    btnAudioSourceToggle.classList.add('mode-tts');
-    btnAudioSourceToggle.innerHTML = '🤖 TTS';
-    btnAudioSourceToggle.title = 'Sumber Suara: Sintesis Suara Browser (TTS)';
-  }
-}
-
-function toggleAudioSource() {
-  if (audioSourceMode === 'AUTO') {
-    audioSourceMode = 'MP3';
-  } else if (audioSourceMode === 'MP3') {
-    audioSourceMode = 'TTS';
-  } else {
-    audioSourceMode = 'AUTO';
-  }
-
-  localStorage.setItem('storybook_audio_source', audioSourceMode);
-  updateAudioSourceUI();
-}
 
 function ensureAudioControlsInTopBar() {
   const topBar = document.querySelector('.top-bar');
   if (!topBar) return;
-
-  if (!btnAudioSourceToggle) {
-    btnAudioSourceToggle = document.createElement('button');
-    btnAudioSourceToggle.id = 'btnAudioSourceToggle';
-    btnAudioSourceToggle.className = 'btn-tool';
-    btnAudioSourceToggle.onclick = toggleAudioSource;
-    topBar.insertBefore(btnAudioSourceToggle, btnKaraokeToggle || btnAutoPlayToggle);
-  }
 
   if (!btnAudioCalibrate) {
     btnAudioCalibrate = document.createElement('button');
@@ -599,11 +558,8 @@ function ensureAudioControlsInTopBar() {
     btnAudioCalibrate.onclick = openCalibrationModal;
     topBar.insertBefore(btnAudioCalibrate, btnKaraokeToggle || btnAutoPlayToggle);
   }
-
-  updateAudioSourceUI();
 }
 
-// Modal Dialog Kalibrasi Waktu Audio (In-App Calibration Slider)
 function openCalibrationModal() {
   let modal = document.getElementById('audioCalibModal');
   if (!modal) {
@@ -696,7 +652,8 @@ if (btnResetHistory) {
   btnResetHistory.onclick = () => {
     if (confirm("Apakah kamu yakin ingin mereset seluruh catatan bintang dan nilai kuis?")) {
       localStorage.removeItem('storybook_quiz_history');
-      renderHomeShelf(); alert("✨ Riwayat bintang kuis berhasil direset!");
+      renderHomeShelf();
+      alert("✨ Riwayat bintang kuis berhasil direset!");
     }
   };
 }
@@ -788,7 +745,6 @@ function openStory(story) {
   updateLangToggleUI();
   updateSpeedToggleUI();
   updateKaraokeUI();
-  updateAudioSourceUI();
   
   renderStoryPageContent(currentPage, isAutoPlay);
 }
@@ -797,7 +753,6 @@ function returnToHome() {
   audioElement.pause(); 
   btnPageAudio.classList.remove('playing');
   stopKaraokeLoop();
-  if (wordAudioTimeout) clearTimeout(wordAudioTimeout);
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   clearKaraokeHighlight();
   readerView.style.display = 'none'; 
@@ -820,7 +775,6 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
   audioElement.currentTime = 0; 
   btnPageAudio.classList.remove('playing');
   stopKaraokeLoop();
-  if (wordAudioTimeout) clearTimeout(wordAudioTimeout);
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
   currentWordElements = [];
@@ -852,7 +806,7 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
   textFlow.innerHTML = '';
   const words = activeText.split(/\s+/).filter(w => w.trim().length > 0);
 
-  // 1. Cek ketersediaan Timestamps Eksplisit dari data buku cerita
+  // 1. Cek ketersediaan Timestamps Eksplisit dari data cerita
   if (pageData.timestamps && Array.isArray(pageData.timestamps) && pageData.timestamps.length === words.length) {
     rawWordTimestamps = pageData.timestamps;
   } else {
@@ -903,9 +857,9 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
 
     const hasTranslation = currentStoryLang === 'en' && pageData.vocab && pageData.vocab[cleanKey];
 
+    // Klik kata langsung melafalkan via TTS dengan Graceful Fallback
     span.onclick = () => {
-      const wordIdx = currentWordElements.indexOf(span);
-      handleWordPronunciation(word, wordIdx, span);
+      speakWord(word, span);
 
       if (hasTranslation) {
         document.querySelectorAll('.vocab-tooltip').forEach(t => t.remove());
@@ -955,62 +909,73 @@ function turnPage(direction) {
 }
 
 // ================================================================
-// 19. PEMUTAR POTONGAN DARI AUDIO MP3 NARASI ASLI (AUDIO SLICING)
+// 19. SUARA KATA (TTS DENGAN DETEKSI & GRACEFUL FALLBACK)
 // ================================================================
-function playWordFromNarration(wordIndex, element) {
-  if (!audioElement || !audioElement.duration || currentWordElements.length === 0) return false;
 
-  if (wordAudioTimeout) clearTimeout(wordAudioTimeout);
+function showVoiceInstallGuideModal() {
+  let modal = document.getElementById('voiceGuideModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'voiceGuideModal';
+    modal.className = 'audio-calib-modal-overlay';
+    modal.innerHTML = `
+      <div class="audio-calib-modal-card" style="max-width: 420px; text-align: left;">
+        <div class="calib-header">
+          <h3 style="color: #ea580c; display: flex; align-items: center; gap: 6px;">
+            <span>🔊</span> Aktifkan Suara Indonesia
+          </h3>
+          <button id="btnCloseVoiceGuideModal" class="btn-calib-close">✕</button>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--text); line-height: 1.5; margin-top: 6px;">
+          Gawai ini belum memiliki data suara <strong>Bahasa Indonesia</strong> pada sistemnya, sehingga suara kata ditiadakan sementara agar tidak salah lafal (berlogat asing).
+        </p>
+        <div style="background: var(--option-bg); border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 14px; font-size: 0.82rem; line-height: 1.6; margin: 6px 0;">
+          <strong>Cara mengaktifkannya di gawai (Android / Tablet):</strong>
+          <ol style="padding-left: 18px; margin-top: 4px; color: var(--text);">
+            <li>Buka menu <strong>Pengaturan (Settings)</strong> gawai.</li>
+            <li>Pilih <strong>Aksesibilitas</strong> atau <strong>Manajemen Umum</strong>.</li>
+            <li>Pilih <strong>Teks-ke-suara (Text-to-speech)</strong>.</li>
+            <li>Pilih <strong>Layanan Suara Google</strong> &rarr; Unduh paket <strong>Bahasa Indonesia</strong>.</li>
+          </ol>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 4px;">
+          💡 <em>Audio narasi lengkap per halaman (tombol speaker) tetap dapat didengarkan secara jernih.</em>
+        </p>
+        <button id="btnDismissVoiceGuide" class="btn-action-next" style="padding: 10px; font-size: 0.85rem; border-radius: 12px; width: 100%; border: none;">
+          Saya Mengerti
+        </button>
+      </div>
+    `;
+    document.body.appendChild(modal);
 
-  const duration = audioElement.duration;
-  let startTime = 0;
-  let endTime = 0;
-
-  if (rawWordTimestamps && Array.isArray(rawWordTimestamps) && rawWordTimestamps.length === currentWordElements.length) {
-    startTime = rawWordTimestamps[wordIndex];
-    endTime = (wordIndex < rawWordTimestamps.length - 1) ? rawWordTimestamps[wordIndex + 1] : duration;
-  } else {
-    const leadIn = Math.min(0.25, duration * 0.04);
-    const leadOut = Math.min(0.40, duration * 0.06);
-    const effectiveDuration = Math.max(0.1, duration - leadIn - leadOut);
-
-    const prevThreshold = wordIndex > 0 ? wordTimingThresholds[wordIndex - 1] : 0;
-    const currentThreshold = wordTimingThresholds[wordIndex];
-
-    startTime = leadIn + (prevThreshold * effectiveDuration);
-    endTime = leadIn + (currentThreshold * effectiveDuration);
+    const closeModal = () => { modal.style.display = 'none'; };
+    modal.querySelector('#btnCloseVoiceGuideModal').onclick = closeModal;
+    modal.querySelector('#btnDismissVoiceGuide').onclick = closeModal;
+    modal.onclick = (e) => { if (e.target === modal) closeModal(); };
   }
-
-  const wordDurationMs = Math.max(380, (endTime - startTime) * 1000 + 80);
-
-  audioElement.currentTime = Math.max(0, startTime);
-  audioElement.play().then(() => {
-    btnPageAudio.classList.add('playing');
-
-    document.querySelectorAll('.clickable-word.speaking').forEach(el => el.classList.remove('speaking'));
-    if (element) element.classList.add('speaking');
-
-    wordAudioTimeout = setTimeout(() => {
-      audioElement.pause();
-      btnPageAudio.classList.remove('playing');
-      if (element) element.classList.remove('speaking');
-    }, wordDurationMs);
-  }).catch(() => {});
-
-  return true;
+  modal.style.display = 'flex';
 }
 
-// ================================================================
-// 20. SUARA KATA (TTS DENGAN PENENTUAN BAHASA & SUARA AKURAT)
-// ================================================================
 function speakWord(word, element) {
-  if (!('speechSynthesis' in window)) return;
+  if (!('speechSynthesis' in window)) {
+    showVoiceInstallGuideModal();
+    return;
+  }
+
   audioElement.pause(); 
   btnPageAudio.classList.remove('playing'); 
   stopKaraokeLoop();
-  if (wordAudioTimeout) clearTimeout(wordAudioTimeout);
   window.speechSynthesis.cancel();
   clearKaraokeHighlight();
+
+  const targetLang = getActiveLanguage();
+  const matchedVoice = getBestVoiceForLang(targetLang);
+
+  // GRACEFUL FALLBACK: Jika bahasa Indonesia tetapi perangkat tidak punya suara Indonesia
+  if (targetLang.startsWith('id') && !matchedVoice) {
+    showVoiceInstallGuideModal();
+    return;
+  }
 
   document.querySelectorAll('.clickable-word.speaking').forEach(el => el.classList.remove('speaking'));
 
@@ -1018,19 +983,10 @@ function speakWord(word, element) {
   if (!cleanWord) return;
 
   const utterance = new SpeechSynthesisUtterance(cleanWord);
-  const targetLang = getActiveLanguage();
-
-  utterance.lang = targetLang;
+  utterance.lang = matchedVoice ? matchedVoice.lang : targetLang;
+  if (matchedVoice) utterance.voice = matchedVoice;
   utterance.rate = ttsSpeed;
   utterance.pitch = 1.0;
-
-  const matchedVoice = getBestVoiceForLang(targetLang);
-  if (matchedVoice) {
-    utterance.voice = matchedVoice;
-    utterance.lang = matchedVoice.lang;
-  } else {
-    utterance.lang = targetLang;
-  }
 
   if (element) {
     element.classList.add('speaking');
@@ -1042,43 +998,7 @@ function speakWord(word, element) {
 }
 
 // ================================================================
-// 21. DISPATCHER CERDAS: MENENTUKAN SUMBER SUARA KATA (AUTO / MP3 / TTS)
-// ================================================================
-function handleWordPronunciation(word, wordIndex, element) {
-  if (wordAudioTimeout) clearTimeout(wordAudioTimeout);
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-  clearKaraokeHighlight();
-
-  const targetLang = getActiveLanguage();
-  const hasIndonesianVoice = getBestVoiceForLang(targetLang) !== null;
-  const hasPageAudio = audioElement && audioElement.src && audioElement.src.length > 0;
-
-  let shouldUseMP3 = false;
-
-  if (audioSourceMode === 'MP3') {
-    shouldUseMP3 = hasPageAudio;
-  } else if (audioSourceMode === 'TTS') {
-    shouldUseMP3 = false;
-  } else {
-    if (targetLang.startsWith('id') && !hasIndonesianVoice && hasPageAudio) {
-      shouldUseMP3 = true;
-    } else {
-      shouldUseMP3 = false;
-    }
-  }
-
-  if (shouldUseMP3) {
-    const success = playWordFromNarration(wordIndex, element);
-    if (!success) {
-      speakWord(word, element);
-    }
-  } else {
-    speakWord(word, element);
-  }
-}
-
-// ================================================================
-// 22. SINKRONISASI KARAOKE 60 FPS (DILENGKAPI OFFSET & TIMESTAMPS)
+// 20. SINKRONISASI KARAOKE 60 FPS (DILENGKAPI OFFSET & TIMESTAMPS)
 // ================================================================
 function updateKaraokeHighlight() {
   if (!isKaraokeEnabled) {
@@ -1179,7 +1099,7 @@ function clearKaraokeHighlight() {
   currentWordElements.forEach(span => span.classList.remove('karaoke-active'));
 }
 
-// 23. GESTURE SWIPE TOUCH
+// 21. GESTURE SWIPE TOUCH
 let touchStartX = 0; let touchStartY = 0;
 bookStage.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }, { passive: true });
 bookStage.addEventListener('touchend', (e) => {
@@ -1201,7 +1121,7 @@ btnNext.onclick = handleNextAction;
 btnPrev.onclick = () => { if (currentPage > 0) turnPage('prev'); };
 
 // ================================================================
-// 24. MESIN KUIS PEMAHAMAN (BANK SOAL & PILIHAN JAWABAN TERACAK)
+// 22. MESIN KUIS PEMAHAMAN (BANK SOAL & PILIHAN JAWABAN TERACAK)
 // ================================================================
 
 function shuffleArray(array) {
@@ -1344,7 +1264,7 @@ if (btnRestartStory) {
   }; 
 }
 
-// 25. MODE MALAM
+// 23. MODE MALAM
 function applyTheme(isDark) {
   document.body.classList.toggle('dark-mode', isDark);
   if (btnThemeToggleHome) btnThemeToggleHome.textContent = isDark ? '☀️' : '🌙';
@@ -1357,7 +1277,7 @@ if (btnThemeToggleHome) btnThemeToggleHome.onclick = toggleTheme;
 if (btnThemeToggleReader) btnThemeToggleReader.onclick = toggleTheme;
 if (localStorage.getItem('storybook_theme') === 'dark') { applyTheme(true); }
 
-// 26. INDIKATOR JARINGAN
+// 24. INDIKATOR JARINGAN
 function updateNetworkStatus() {
   if (!networkStatus) return;
   const isOnline = navigator.onLine;
@@ -1368,7 +1288,7 @@ function updateNetworkStatus() {
 window.addEventListener('online', updateNetworkStatus);
 window.addEventListener('offline', updateNetworkStatus);
 
-// 27. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT PURE)
+// 25. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT PURE)
 let deferredPrompt = null;
 
 if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
@@ -1404,7 +1324,7 @@ window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
 });
 
-// 28. INISIALISASI
+// 26. INISIALISASI
 window.addEventListener('DOMContentLoaded', () => {
   renderHomeShelf();
   updateAutoPlayUI();
