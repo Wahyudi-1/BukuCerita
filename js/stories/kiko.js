@@ -13,7 +13,7 @@ window.STORIES_DATABASE.push({
   category: "Fase Fondasi / Belajar Membaca",
   level: "Tingkat 1 (Suku Kata Terbuka - Fonik Dasar)",
   defaultLang: "id",
-  cover: "./images/kiko-a-ba/kicover_compressed.jpg",
+  cover: "./images/kiko-a-ba/ki01_compressed.jpg",
   description: "Latihan membaca awal dengan drill kombinasi vokal 'a' dan konsonan 'b' bertahap bersama Kiko di kebun apel.",
 
   highlightTheme: {
