@@ -2,7 +2,7 @@
  * ================================================================
  * APP.JS - MESIN BUKU CERITA INTERAKTIF TERLENGKAP
  * (OFFLINE DOWNLOADER, RANDOM QUESTION BANK, SHUFFLED OPTIONS,
- *  HIGH-PRECISION KARAOKE SYNC, THEMED HIGHLIGHT, BILINGUAL MODE, 1-CLICK PWA)
+ *  HIGH-PRECISION 60FPS KARAOKE SYNC, THEMED HIGHLIGHT, BILINGUAL MODE, 1-CLICK PWA)
  * ================================================================
  */
 
@@ -15,11 +15,12 @@ let currentQuizIndex = 0;
 let quizScore = 0;
 let correctCount = 0;
 
-// Penampung Bank Soal Acak & Pelacak Karaoke
+// Penampung Bank Soal Acak, Pelacak Karaoke 60 FPS, & Voice Cache
 let activeQuizQuestions = [];
 let currentWordElements = [];
 let wordTimingThresholds = [];
 let karaokeAnimId = null;
+let availableVoices = [];
 
 const preloadedImages = {};
 const preloadedAudios = {};
@@ -84,7 +85,88 @@ const pwaInstallBanner = document.getElementById('pwaInstallBanner');
 const btnInstallPwa = document.getElementById('btnInstallPwa');
 const btnCloseInstallBanner = document.getElementById('btnCloseInstallBanner');
 
-// 3. MODUL HAPTIC FEEDBACK (GETARAN VIBRATION API)
+// ================================================================
+// 3. MESIN INISIALISASI SUARA PERAMBAN (VOICE LOADER & RESOLVER)
+// ================================================================
+
+function populateVoices() {
+  if (!('speechSynthesis' in window)) return;
+  const loaded = window.speechSynthesis.getVoices();
+  if (loaded && loaded.length > 0) {
+    availableVoices = loaded;
+  }
+}
+
+populateVoices();
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = populateVoices;
+}
+
+// Mekanisme Polling Aktif untuk Android & Safari yang lambat memuat suara
+let voicePollCount = 0;
+const voicePollInterval = setInterval(() => {
+  voicePollCount++;
+  populateVoices();
+  if (availableVoices.length > 0 || voicePollCount > 20) {
+    clearInterval(voicePollInterval);
+  }
+}, 250);
+
+// Menentukan kode bahasa resmi berdasarkan teks aktif
+function getActiveLanguage() {
+  if (currentStoryLang === 'en') return 'en-US';
+  if (currentStoryLang === 'id') return 'id-ID';
+  if (currentStory && currentStory.lang) {
+    return currentStory.lang.toLowerCase().startsWith('en') ? 'en-US' : 'id-ID';
+  }
+  return 'id-ID';
+}
+
+// Mesin pencari suara yang mencegah pemakaian logat Inggris untuk teks Indonesia
+function getBestVoiceForLang(targetLang) {
+  if (!availableVoices || availableVoices.length === 0) {
+    populateVoices();
+  }
+
+  const isId = targetLang.toLowerCase().startsWith('id') || targetLang.toLowerCase().startsWith('in');
+
+  if (isId) {
+    // 1. Cek kecocokan kode standar 'id-ID' atau kode regional Android lama 'in-ID'
+    let matched = availableVoices.find(v => {
+      const code = v.lang.replace('_', '-').toLowerCase();
+      return code === 'id-id' || code === 'in-id';
+    });
+    if (matched) return matched;
+
+    // 2. Cek awalan kode bahasa 'id' atau 'in'
+    matched = availableVoices.find(v => {
+      const code = v.lang.toLowerCase();
+      return code.startsWith('id') || code.startsWith('in');
+    });
+    if (matched) return matched;
+
+    // 3. Cek deskripsi nama suara (Google Bahasa Indonesia, Microsoft Gadis/Ardi, dsb.)
+    matched = availableVoices.find(v => {
+      const name = v.name.toLowerCase();
+      return name.includes('indonesia') || name.includes('bahasa') || name.includes('id-id');
+    });
+    if (matched) return matched;
+
+    // PENTING: Jangan fallback ke suara pertama jika itu berbahasa Inggris
+    return null;
+  } else {
+    // Bahasa Inggris
+    let matched = availableVoices.find(v => v.lang.replace('_', '-').toLowerCase() === 'en-us');
+    if (matched) return matched;
+
+    matched = availableVoices.find(v => v.lang.toLowerCase().startsWith('en'));
+    if (matched) return matched;
+
+    return null;
+  }
+}
+
+// 4. MODUL HAPTIC FEEDBACK (GETARAN VIBRATION API)
 function triggerHaptic(type) {
   if (!isHapticEnabled || !('vibrate' in navigator)) return;
   switch (type) {
@@ -117,7 +199,7 @@ function toggleHaptic() {
 if (btnHapticToggleHome) btnHapticToggleHome.onclick = toggleHaptic;
 if (btnHapticToggleReader) btnHapticToggleReader.onclick = toggleHaptic;
 
-// 4. KUNCI ORIENTASI CERDAS
+// 5. KUNCI ORIENTASI CERDAS
 async function lockScreenOrientation() {
   try {
     if (screen.orientation && screen.orientation.lock) {
@@ -133,7 +215,7 @@ async function lockScreenOrientation() {
   }
 }
 
-// 5. MESIN AUDIO SINTETIS (WEB AUDIO API)
+// 6. MESIN AUDIO SINTETIS (WEB AUDIO API)
 let audioCtx = null;
 
 function getAudioContext() {
@@ -220,7 +302,7 @@ function playFanfareSound() {
   });
 }
 
-// 6. ANIMASI TABURAN KONFETI
+// 7. ANIMASI TABURAN KONFETI
 function launchConfetti() {
   if (!confettiCanvas) return;
   const ctx = confettiCanvas.getContext('2d');
@@ -274,7 +356,7 @@ function launchConfetti() {
   renderConfetti();
 }
 
-// 7. PRELOADING RAM CEPAT
+// 8. PRELOADING RAM CEPAT
 function preloadStoryImages(story) {
   if (!story || !story.pages) return;
   story.pages.forEach(p => {
@@ -295,10 +377,7 @@ function preloadStoryAudios(story) {
   });
 }
 
-// ================================================================
-// 8. MESIN PENGUNDUH MEDIA OFFLINE MANDIRI (CACHE STORAGE API)
-// ================================================================
-
+// 9. PENGUNDUH MEDIA OFFLINE MANDIRI (CACHE STORAGE API)
 function extractStoryMediaUrls(story) {
   const urlSet = new Set();
   if (story.cover) urlSet.add(story.cover);
@@ -374,7 +453,7 @@ async function downloadStoryMediaForOffline(story, btnElement) {
   }
 }
 
-// 9. RENDER RAK BUKU DI BERANDA
+// 10. RENDER RAK BUKU DI BERANDA
 function renderHomeShelf() {
   if (!storiesGrid) return;
   const listCerita = window.STORIES_DATABASE || [];
@@ -447,7 +526,7 @@ const storyPoller = setInterval(() => {
   }
 }, 150);
 
-// 10. SAKELAR NARASI OTOMATIS
+// 11. SAKELAR NARASI OTOMATIS
 function updateAutoPlayUI() {
   if (!btnAutoPlayToggle) return;
   if (isAutoPlay) {
@@ -472,7 +551,7 @@ if (btnAutoPlayToggle) {
   };
 }
 
-// 11. KONTROL LAYAR PENUH
+// 12. KONTROL LAYAR PENUH
 function toggleFullScreen() {
   triggerHaptic('tap');
   if (!document.fullscreenElement && !document.webkitFullscreenElement) {
@@ -488,7 +567,7 @@ function toggleFullScreen() {
 if (btnFullScreenHome) btnFullScreenHome.onclick = toggleFullScreen;
 if (btnFullScreenReader) btnFullScreenReader.onclick = toggleFullScreen;
 
-// 12. RESET RIWAYAT KUIS
+// 13. RESET RIWAYAT KUIS
 if (btnResetHistory) {
   btnResetHistory.onclick = () => {
     triggerHaptic('tap');
@@ -499,7 +578,7 @@ if (btnResetHistory) {
   };
 }
 
-// 13. FITUR PERALIHAN BAHASA & KECEPATAN TTS
+// 14. FITUR PERALIHAN BAHASA & KECEPATAN TTS
 function updateLangToggleUI() {
   if (!btnLangToggle) return;
   const isBilingual = currentStory && currentStory.pages && currentStory.pages.some(p => p.text_id && p.text);
@@ -540,7 +619,7 @@ if (btnSpeedToggle) {
   };
 }
 
-// 14. BUKA CERITA & KEMBALI
+// 15. BUKA CERITA & KEMBALI
 function openStory(story) {
   currentStory = story; 
   currentPage = 0; 
@@ -558,7 +637,6 @@ function openStory(story) {
   document.documentElement.style.setProperty('--story-hl-border', theme.border);
   document.documentElement.style.setProperty('--story-hl-shadow', theme.shadow);
 
-  // Penentuan default bahasa cerita
   if (story.defaultLang) {
     currentStoryLang = story.defaultLang;
   } else if (story.lang && story.lang.toLowerCase().startsWith('en')) {
@@ -584,7 +662,7 @@ function openStory(story) {
   quizView.style.display = 'none';
   
   getAudioContext(); 
-  if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
+  populateVoices();
   updateAutoPlayUI(); 
   updateHapticUI();
   updateLangToggleUI();
@@ -610,7 +688,7 @@ if (btnBackHome) btnBackHome.onclick = returnToHome;
 if (btnFinishToHome) btnFinishToHome.onclick = returnToHome;
 
 // ================================================================
-// 15. RENDER KONTEN BUKU (DILENGKAPI PEMBOBOTAN AKUSTIK KARAOKE)
+// 16. RENDER KONTEN BUKU (DILENGKAPI PEMBOBOTAN AKUSTIK KARAOKE)
 // ================================================================
 function renderStoryPageContent(index, autoPlayAudio = false) {
   if (!currentStory || !currentStory.pages || !currentStory.pages[index]) return;
@@ -627,7 +705,6 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
 
   storyImage.src = pageData.image;
 
-  // Pemilihan sumber audio narasi
   const activeAudio = (currentStoryLang === 'id' && pageData.audio_id) ? pageData.audio_id : pageData.audio;
 
   if (activeAudio) {
@@ -646,7 +723,6 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
     audioElement.removeAttribute('src');
   }
 
-  // Pemilihan teks aktif
   const activeText = (currentStoryLang === 'id' && pageData.text_id) ? pageData.text_id : (pageData.text || '');
 
   textFlow.innerHTML = '';
@@ -663,14 +739,13 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
 
     // Kompensasi jeda napas pada tanda baca
     if (w.includes('...') || w.includes(':')) {
-      weight += 2.8; // Jeda intonasi panjang
+      weight += 2.8; 
     } else if (/[.!?]/.test(w)) {
-      weight += 2.4; // Jeda akhir kalimat
+      weight += 2.4; 
     } else if (/[,;]/.test(w)) {
-      weight += 1.4; // Jeda anak kalimat
+      weight += 1.4; 
     }
 
-    // Kata berulang dengan tanda hubung (misal: "lompat-lompat")
     if (w.includes('-') && clean.length > 3) {
       weight += 1.2;
     }
@@ -730,7 +805,7 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
   btnNext.textContent = isLastPage ? (hasQuiz ? 'Ikuti Kuis 🎯' : 'Selesai 🏁') : 'Balik Halaman';
 }
 
-// 16. ANIMASI BALIK HALAMAN SINKRON
+// 17. ANIMASI BALIK HALAMAN SINKRON
 function turnPage(direction) {
   if (isFlipping) return;
   isFlipping = true;
@@ -753,60 +828,8 @@ function turnPage(direction) {
 }
 
 // ================================================================
-// 17. SUARA KATA (TTS DENGAN PENENTUAN BAHASA & SUARA AKURAT)
+// 18. SUARA KATA (TTS DENGAN PENENTUAN BAHASA & SUARA AKURAT)
 // ================================================================
-
-// Menentukan kode bahasa resmi berdasarkan teks yang sedang aktif
-function getActiveLanguage() {
-  if (currentStoryLang === 'en') return 'en-US';
-  if (currentStoryLang === 'id') return 'id-ID';
-  if (currentStory && currentStory.lang) {
-    return currentStory.lang.toLowerCase().startsWith('en') ? 'en-US' : 'id-ID';
-  }
-  return 'id-ID';
-}
-
-// Mesin pencari suara cerdas peramban untuk bahasa Indonesia & Inggris
-function getBestVoiceForLang(targetLang) {
-  if (!('speechSynthesis' in window)) return null;
-  const voices = window.speechSynthesis.getVoices();
-  if (!voices || voices.length === 0) return null;
-
-  const isId = targetLang.toLowerCase().startsWith('id') || targetLang.toLowerCase().startsWith('in');
-
-  if (isId) {
-    // 1. Prioritas kode resmi id-ID atau in-ID (Android/Java)
-    let matched = voices.find(v => {
-      const code = v.lang.replace('_', '-').toLowerCase();
-      return code === 'id-id' || code === 'in-id';
-    });
-    if (matched) return matched;
-
-    // 2. Prioritas prefix id atau in
-    matched = voices.find(v => {
-      const code = v.lang.toLowerCase();
-      return code.startsWith('id') || code.startsWith('in');
-    });
-    if (matched) return matched;
-
-    // 3. Prioritas nama suara (Google Bahasa Indonesia / Microsoft Gadis/Ardi)
-    matched = voices.find(v => {
-      const name = v.name.toLowerCase();
-      return name.includes('indonesia') || name.includes('bahasa');
-    });
-    if (matched) return matched;
-  } else {
-    // Bahasa Inggris (en-US)
-    let matched = voices.find(v => v.lang.replace('_', '-').toLowerCase() === 'en-us');
-    if (matched) return matched;
-
-    matched = voices.find(v => v.lang.toLowerCase().startsWith('en'));
-    if (matched) return matched;
-  }
-
-  return null;
-}
-
 function speakWord(word, element) {
   if (!('speechSynthesis' in window)) return;
   triggerHaptic('tap'); 
@@ -826,11 +849,15 @@ function speakWord(word, element) {
 
   utterance.lang = targetLang;
   utterance.rate = ttsSpeed;
+  utterance.pitch = 1.0;
 
   const matchedVoice = getBestVoiceForLang(targetLang);
   if (matchedVoice) {
     utterance.voice = matchedVoice;
-    utterance.lang = matchedVoice.lang; // Sinkronkan kode bahasa dengan voice terpilih
+    utterance.lang = matchedVoice.lang;
+  } else {
+    // Jika gawai tidak memiliki suara eksplisit, paksa tag resmi ke OS
+    utterance.lang = targetLang;
   }
 
   if (element) {
@@ -843,16 +870,15 @@ function speakWord(word, element) {
 }
 
 // ================================================================
-// 18. SPEAKER MANUAL & SINKRONISASI KARAOKE 60 FPS (HIGH-PRECISION)
+// 19. SINKRONISASI KARAOKE 60 FPS (HIGH-PRECISION)
 // ================================================================
-
 function updateKaraokeHighlight() {
   if (!audioElement || !audioElement.duration || currentWordElements.length === 0) return;
 
   const duration = audioElement.duration;
   const currentTime = audioElement.currentTime;
 
-  // Kompensasi jeda hening alami awal (lead-in) dan akhir (lead-out) narator
+  // Kompensasi jeda hening alami narator di awal dan akhir audio
   const leadIn = Math.min(0.25, duration * 0.04);
   const leadOut = Math.min(0.40, duration * 0.06);
   const effectiveDuration = Math.max(0.1, duration - leadIn - leadOut);
@@ -877,7 +903,6 @@ function updateKaraokeHighlight() {
   });
 }
 
-// Putaran Frame 60 FPS untuk pelacakan audio presisi tinggi
 function startKaraokeLoop() {
   if (karaokeAnimId) cancelAnimationFrame(karaokeAnimId);
   function loop() {
@@ -913,7 +938,7 @@ btnPageAudio.onclick = () => {
 };
 
 audioElement.addEventListener('play', startKaraokeLoop);
-audioElement.addEventListener('timeupdate', updateKaraokeHighlight); // Fallback cadangan
+audioElement.addEventListener('timeupdate', updateKaraokeHighlight);
 audioElement.addEventListener('pause', () => {
   stopKaraokeLoop();
   clearKaraokeHighlight();
@@ -928,7 +953,7 @@ function clearKaraokeHighlight() {
   currentWordElements.forEach(span => span.classList.remove('karaoke-active'));
 }
 
-// 19. GESTURE SWIPE TOUCH
+// 20. GESTURE SWIPE TOUCH
 let touchStartX = 0; let touchStartY = 0;
 bookStage.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }, { passive: true });
 bookStage.addEventListener('touchend', (e) => {
@@ -950,7 +975,7 @@ btnNext.onclick = handleNextAction;
 btnPrev.onclick = () => { if (currentPage > 0) turnPage('prev'); };
 
 // ================================================================
-// 20. MESIN KUIS PEMAHAMAN (BANK SOAL & PILIHAN JAWABAN TERACAK)
+// 21. MESIN KUIS PEMAHAMAN (BANK SOAL & PILIHAN JAWABAN TERACAK)
 // ================================================================
 
 function shuffleArray(array) {
@@ -1101,7 +1126,7 @@ if (btnRestartStory) {
   }; 
 }
 
-// 21. MODE MALAM
+// 22. MODE MALAM
 function applyTheme(isDark) {
   document.body.classList.toggle('dark-mode', isDark);
   if (btnThemeToggleHome) btnThemeToggleHome.textContent = isDark ? '☀️' : '🌙';
@@ -1114,7 +1139,7 @@ if (btnThemeToggleHome) btnThemeToggleHome.onclick = toggleTheme;
 if (btnThemeToggleReader) btnThemeToggleReader.onclick = toggleTheme;
 if (localStorage.getItem('storybook_theme') === 'dark') { applyTheme(true); }
 
-// 22. INDIKATOR JARINGAN
+// 23. INDIKATOR JARINGAN
 function updateNetworkStatus() {
   if (!networkStatus) return;
   const isOnline = navigator.onLine;
@@ -1125,7 +1150,7 @@ function updateNetworkStatus() {
 window.addEventListener('online', () => { updateNetworkStatus(); triggerHaptic('tap'); });
 window.addEventListener('offline', () => { updateNetworkStatus(); triggerHaptic('wrong'); });
 
-// 23. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT PURE)
+// 24. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT PURE)
 let deferredPrompt = null;
 
 if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
@@ -1164,18 +1189,11 @@ window.addEventListener('appinstalled', () => {
   triggerHaptic('celebrate');
 });
 
-// 24. INISIALISASI
+// 25. INISIALISASI
 window.addEventListener('DOMContentLoaded', () => {
   renderHomeShelf();
   updateAutoPlayUI();
   updateHapticUI();
   updateNetworkStatus();
-
-  // Memastikan daftar voice peramban segera dimuat ke memori
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.onvoiceschanged = () => {
-      window.speechSynthesis.getVoices();
-    };
-    window.speechSynthesis.getVoices();
-  }
+  populateVoices();
 });
