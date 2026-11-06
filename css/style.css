@@ -276,49 +276,69 @@ body.dark-mode .story-history-badge {
 .story-desc { font-size: 0.85rem; color: var(--text-sub); line-height: 1.35; }
 
 /* ================= PEMBACA BUKU (READER) ================= */
-.top-bar { display: flex; align-items: center; gap: 8px; }
+.top-bar { 
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+  flex-wrap: nowrap;
+}
 
 .btn-tool {
   background: var(--paper);
   border: 2px solid var(--border);
   box-shadow: 0 3px 0 var(--border);
   border-radius: 14px;
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   cursor: pointer;
   flex-shrink: 0;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
 .btn-tool:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--border); }
 
-/* Tombol Khusus Fitur Dwibahasa & Kecepatan Suara */
+/* Tombol Khusus: Dwibahasa, Kecepatan, & Sakelar Karaoke */
 #btnLangToggle {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 800;
   width: auto;
-  min-width: 54px;
-  padding: 0 10px;
+  min-width: 52px;
+  padding: 0 8px;
   color: var(--accent);
   border-color: var(--accent-border);
 }
 
 #btnSpeedToggle {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
+}
+
+#btnKaraokeToggle {
+  font-size: 0.78rem;
+  font-weight: 800;
+  width: auto;
+  min-width: 58px;
+  padding: 0 8px;
+  color: var(--primary);
+  border-color: var(--primary-border);
 }
 
 /* Status Sakelar Nonaktif */
-.btn-tool.autoplay-off, .btn-tool.haptic-off {
+.btn-tool.autoplay-off, 
+.btn-tool.haptic-off,
+.btn-tool.karaoke-off {
   background: #fee2e2;
   color: #ef4444;
   border-color: #fca5a5;
   box-shadow: 0 3px 0 #f87171;
 }
 
-body.dark-mode .btn-tool.autoplay-off, body.dark-mode .btn-tool.haptic-off {
+body.dark-mode .btn-tool.autoplay-off, 
+body.dark-mode .btn-tool.haptic-off,
+body.dark-mode .btn-tool.karaoke-off {
   background: #451a1a;
   color: #fca5a5;
   border-color: #7f1d1d;
@@ -327,10 +347,11 @@ body.dark-mode .btn-tool.autoplay-off, body.dark-mode .btn-tool.haptic-off {
 
 .progress-track {
   flex: 1;
-  height: 14px;
+  height: 12px;
   background-color: var(--border);
   border-radius: 20px;
   overflow: hidden;
+  margin: 0 4px;
 }
 
 .progress-fill {
@@ -344,9 +365,10 @@ body.dark-mode .btn-tool.autoplay-off, body.dark-mode .btn-tool.haptic-off {
 .page-indicator {
   font-weight: 800;
   color: var(--text-sub);
-  font-size: 0.9rem;
-  min-width: 46px;
+  font-size: 0.85rem;
+  min-width: 42px;
   text-align: right;
+  flex-shrink: 0;
 }
 
 .book-stage {
