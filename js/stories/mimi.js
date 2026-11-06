@@ -13,7 +13,7 @@ window.STORIES_DATABASE.push({
   category: "Fase Fondasi / Belajar Membaca",
   level: "Tingkat 1 (Suku Kata Terbuka - Fonik Dasar)",
   defaultLang: "id",
-  cover: "./images/mimi-ma-mi/micover_compressed.jpg",
+  cover: "./images/mimi-ma-mi/mi01_compressed.jpg",
   description: "Latihan membaca awal dengan drill kombinasi vokal 'a', 'i' dan konsonan 'm' bertahap bersama Mimi di kebun mangga.",
 
   highlightTheme: {
