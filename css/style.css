@@ -301,7 +301,7 @@ body.dark-mode .story-history-badge {
 
 .btn-tool:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--border); }
 
-/* Tombol Khusus: Dwibahasa, Kecepatan, & Sakelar Karaoke */
+/* Tombol Khusus Top-Bar */
 #btnLangToggle {
   font-size: 0.8rem;
   font-weight: 800;
@@ -324,6 +324,39 @@ body.dark-mode .story-history-badge {
   padding: 0 8px;
   color: var(--primary);
   border-color: var(--primary-border);
+}
+
+#btnAudioSourceToggle {
+  font-size: 0.76rem;
+  font-weight: 800;
+  width: auto;
+  min-width: 66px;
+  padding: 0 8px;
+  color: #7c3aed;
+  border-color: #8b5cf6;
+  background: var(--paper);
+}
+
+#btnAudioSourceToggle.mode-mp3 {
+  color: #0284c7;
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+}
+
+#btnAudioSourceToggle.mode-tts {
+  color: #ea580c;
+  border-color: #fb923c;
+  background: rgba(251, 146, 60, 0.12);
+}
+
+#btnAudioSourceToggle.mode-auto {
+  color: #16a34a;
+  border-color: #4ade80;
+  background: rgba(74, 222, 128, 0.12);
+}
+
+#btnAudioCalibrate {
+  font-size: 1.05rem;
 }
 
 /* Status Sakelar Nonaktif */
@@ -673,4 +706,130 @@ body.dark-mode .btn-offline-status.downloading {
   background: #362c0d;
   color: #fde047;
   border-color: #854d0e;
+}
+
+/* ================= MODAL KALIBRASI WAKTU AUDIO ================= */
+.audio-calib-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 10000;
+  animation: fadeInModal 0.2s ease;
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.audio-calib-modal-card {
+  background: var(--paper);
+  color: var(--text);
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  max-width: 380px;
+  width: 100%;
+  padding: 18px 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.calib-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1.5px solid var(--border);
+  padding-bottom: 8px;
+}
+
+.calib-header h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.btn-calib-close {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-sub);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.btn-calib-close:hover {
+  background: var(--border);
+}
+
+.calib-desc {
+  font-size: 0.85rem;
+  color: var(--text-sub);
+  line-height: 1.4;
+}
+
+.calib-slider-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--option-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.calib-slider-box input[type="range"] {
+  width: 100%;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.calib-val-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.calib-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.btn-calib-step, 
+.btn-calib-reset {
+  flex: 1;
+  padding: 9px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  transition: transform 0.1s ease;
+}
+
+.btn-calib-step:active, 
+.btn-calib-reset:active {
+  transform: scale(0.96);
+}
+
+.btn-calib-step {
+  background: var(--paper);
+  color: var(--accent);
+  border-color: var(--accent-border);
+}
+
+.btn-calib-reset {
+  background: var(--option-bg);
+  color: var(--text-sub);
 }
