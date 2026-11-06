@@ -326,35 +326,6 @@ body.dark-mode .story-history-badge {
   border-color: var(--primary-border);
 }
 
-#btnAudioSourceToggle {
-  font-size: 0.76rem;
-  font-weight: 800;
-  width: auto;
-  min-width: 66px;
-  padding: 0 8px;
-  color: #7c3aed;
-  border-color: #8b5cf6;
-  background: var(--paper);
-}
-
-#btnAudioSourceToggle.mode-mp3 {
-  color: #0284c7;
-  border-color: #38bdf8;
-  background: rgba(56, 189, 248, 0.12);
-}
-
-#btnAudioSourceToggle.mode-tts {
-  color: #ea580c;
-  border-color: #fb923c;
-  background: rgba(251, 146, 60, 0.12);
-}
-
-#btnAudioSourceToggle.mode-auto {
-  color: #16a34a;
-  border-color: #4ade80;
-  background: rgba(74, 222, 128, 0.12);
-}
-
 #btnAudioCalibrate {
   font-size: 1.05rem;
 }
