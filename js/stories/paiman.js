@@ -13,7 +13,7 @@ window.STORIES_DATABASE.push({
   title: "Paiman dan Enam Sahabat Rukun",
   category: "Fase A / Kelas 1",
   defaultLang: "id",
-  cover: "./images/paiman-enam-agama/pai16.jpg",
+  cover: "./images/paiman-enam-agama/pai16_compressed.jpg",
   description: "Ikuti kisah seru Paiman mengenal enam agama resmi di Indonesia, tempat ibadah, serta indahnya hidup rukun penuh toleransi.",
 
   highlightTheme: {
@@ -28,7 +28,7 @@ window.STORIES_DATABASE.push({
       page: 1,
       text: "Hello! My name is Paiman. I am a friendly Indonesian boy who loves making new friends!",
       text_id: "Halo! Namaku Paiman. Aku anak Indonesia yang ramah dan suka mencari banyak teman!",
-      image: "./images/paiman-enam-agama/pai01.jpg",
+      image: "./images/paiman-enam-agama/pai01_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai01.mp3",
       audio_id: "./audio/paiman-enam-agama/pai01_id.mp3",
       vocab: {
@@ -43,7 +43,7 @@ window.STORIES_DATABASE.push({
       page: 2,
       text: "In Indonesia, there are six official religions. We all live peacefully and care for one another.",
       text_id: "Di Indonesia, ada enam agama resmi. Walau berbeda, kita semua hidup rukun dan saling menyayangi.",
-      image: "./images/paiman-enam-agama/pai02.jpg",
+      image: "./images/paiman-enam-agama/pai02_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai02.mp3",
       audio_id: "./audio/paiman-enam-agama/pai02_id.mp3",
       vocab: {
@@ -57,7 +57,7 @@ window.STORIES_DATABASE.push({
       page: 3,
       text: "This is Ahmad, my Muslim friend. Ahmad's place of worship is called a Mosque.",
       text_id: "Ini Ahmad, temanku yang beragama Islam. Tempat ibadah Ahmad bernama Masjid.",
-      image: "./images/paiman-enam-agama/pai03.jpg",
+      image: "./images/paiman-enam-agama/pai03_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai03.mp3",
       audio_id: "./audio/paiman-enam-agama/pai03_id.mp3",
       vocab: {
@@ -71,7 +71,7 @@ window.STORIES_DATABASE.push({
       page: 4,
       text: "Before praying, Ahmad washes with clean water. Ahmad kneels and prays peacefully to God.",
       text_id: "Sebelum shalat, Ahmad berwudu dengan air bersih. Ahmad bersujud dan berdoa kepada Allah dengan khusyuk.",
-      image: "./images/paiman-enam-agama/pai04.jpg",
+      image: "./images/paiman-enam-agama/pai04_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai04.mp3",
       audio_id: "./audio/paiman-enam-agama/pai04_id.mp3",
       vocab: {
@@ -86,7 +86,7 @@ window.STORIES_DATABASE.push({
       page: 5,
       text: "This is Sarah, my Protestant Christian friend. Sarah's place of worship is called a Church.",
       text_id: "Ini Sarah, temanku yang beragama Kristen Protestan. Tempat ibadah Sarah bernama Gereja.",
-      image: "./images/paiman-enam-agama/pai05.jpg",
+      image: "./images/paiman-enam-agama/pai05_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai05.mp3",
       audio_id: "./audio/paiman-enam-agama/pai05_id.mp3",
       vocab: {
@@ -100,7 +100,7 @@ window.STORIES_DATABASE.push({
       page: 6,
       text: "Every Sunday, Sarah goes to church. Sarah sings joyful praise songs and prays with happiness.",
       text_id: "Setiap hari Minggu, Sarah pergi ke gereja. Sarah bernyanyi lagu pujian dan berdoa dengan riang gembira.",
-      image: "./images/paiman-enam-agama/pai06.jpg",
+      image: "./images/paiman-enam-agama/pai06_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai06.mp3",
       audio_id: "./audio/paiman-enam-agama/pai06_id.mp3",
       vocab: {
@@ -115,7 +115,7 @@ window.STORIES_DATABASE.push({
       page: 7,
       text: "This is Edo, my Catholic friend. Edo's place of worship is also called a Catholic Church.",
       text_id: "Ini Edo, temanku yang beragama Katolik. Tempat ibadah Edo juga bernama Gereja Katolik.",
-      image: "./images/paiman-enam-agama/pai07.jpg",
+      image: "./images/paiman-enam-agama/pai07_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai07.mp3",
       audio_id: "./audio/paiman-enam-agama/pai07_id.mp3",
       vocab: {
@@ -129,7 +129,7 @@ window.STORIES_DATABASE.push({
       page: 8,
       text: "Edo attends Holy Mass. Edo makes the sign of the cross and prays with deep reverence.",
       text_id: "Edo mengikuti perayaan misa suci. Edo membuat tanda salib dan berdoa dengan penuh rasa hormat.",
-      image: "./images/paiman-enam-agama/pai08.jpg",
+      image: "./images/paiman-enam-agama/pai08_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai08.mp3",
       audio_id: "./audio/paiman-enam-agama/pai08_id.mp3",
       vocab: {
@@ -143,7 +143,7 @@ window.STORIES_DATABASE.push({
       page: 9,
       text: "Look, we love playing together! Even though our prayers are different, we always respect each other.",
       text_id: "Lihatlah, kami senang bermain bersama! Walau cara kami berdoa berbeda, kami selalu saling menghargai.",
-      image: "./images/paiman-enam-agama/pai09.jpg",
+      image: "./images/paiman-enam-agama/pai09_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai09.mp3",
       audio_id: "./audio/paiman-enam-agama/pai09_id.mp3",
       vocab: {
@@ -158,7 +158,7 @@ window.STORIES_DATABASE.push({
       page: 10,
       text: "This is Wayan, my Hindu friend from Bali. Wayan's place of worship is called a Pura.",
       text_id: "Ini Wayan, temanku dari Bali yang beragama Hindu. Tempat ibadah Wayan bernama Pura.",
-      image: "./images/paiman-enam-agama/pai10.jpg",
+      image: "./images/paiman-enam-agama/pai10_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai10.mp3",
       audio_id: "./audio/paiman-enam-agama/pai10_id.mp3",
       vocab: {
@@ -172,7 +172,7 @@ window.STORIES_DATABASE.push({
       page: 11,
       text: "Wayan prays holding colorful flowers and sweet incense. Wayan prays for peace and harmony in the universe.",
       text_id: "Wayan bersembahyang membawa bunga warna-warni dan dupa wangi. Wayan berdoa memohon kebaikan bagi alam semesta.",
-      image: "./images/paiman-enam-agama/pai11.jpg",
+      image: "./images/paiman-enam-agama/pai11_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai11.mp3",
       audio_id: "./audio/paiman-enam-agama/pai11_id.mp3",
       vocab: {
@@ -187,7 +187,7 @@ window.STORIES_DATABASE.push({
       page: 12,
       text: "This is Sinta, my Buddhist friend. Sinta's place of worship is called a Vihara.",
       text_id: "Ini Sinta, temanku yang beragama Buddha. Tempat ibadah Sinta bernama Vihara.",
-      image: "./images/paiman-enam-agama/pai12.jpg",
+      image: "./images/paiman-enam-agama/pai12_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai12.mp3",
       audio_id: "./audio/paiman-enam-agama/pai12_id.mp3",
       vocab: {
@@ -201,7 +201,7 @@ window.STORIES_DATABASE.push({
       page: 13,
       text: "Sinta gently clasps her palms together. Sinta sits quietly and meditates to find peace in her heart.",
       text_id: "Sinta merapatkan kedua tangannya di depan dada. Sinta duduk tenang dan bermeditasi agar hatinya damai.",
-      image: "./images/paiman-enam-agama/pai13.jpg",
+      image: "./images/paiman-enam-agama/pai13_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai13.mp3",
       audio_id: "./audio/paiman-enam-agama/pai13_id.mp3",
       vocab: {
@@ -215,7 +215,7 @@ window.STORIES_DATABASE.push({
       page: 14,
       text: "This is Chen, my friend who practices Confucianism. Chen's place of worship is called a Klenteng or Litang.",
       text_id: "Ini Chen, temanku yang beragama Khonghucu. Tempat ibadah Chen bernama Klenteng atau Litang.",
-      image: "./images/paiman-enam-agama/pai14.jpg",
+      image: "./images/paiman-enam-agama/pai14_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai14.mp3",
       audio_id: "./audio/paiman-enam-agama/pai14_id.mp3",
       vocab: {
@@ -229,7 +229,7 @@ window.STORIES_DATABASE.push({
       page: 15,
       text: "Chen holds fragrant incense sticks and bows politely. Chen gives thanks for blessings and good health.",
       text_id: "Chen memegang dupa harum dan membungkuk sopan. Chen bersyukur atas segala rezeki dan kebaikan hidup.",
-      image: "./images/paiman-enam-agama/pai15.jpg",
+      image: "./images/paiman-enam-agama/pai15_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai15.mp3",
       audio_id: "./audio/paiman-enam-agama/pai15_id.mp3",
       vocab: {
@@ -244,7 +244,7 @@ window.STORIES_DATABASE.push({
       page: 16,
       text: "Wow, our friendship is so wonderful! Six different religions, yet we always play and learn together.",
       text_id: "Wah, indahnya persahabatan kita! Enam agama yang berbeda, tetapi kami selalu bermain dan belajar bersama.",
-      image: "./images/paiman-enam-agama/pai16.jpg",
+      image: "./images/paiman-enam-agama/pai16_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai16.mp3",
       audio_id: "./audio/paiman-enam-agama/pai16_id.mp3",
       vocab: {
@@ -258,7 +258,7 @@ window.STORIES_DATABASE.push({
       page: 17,
       text: "Unity in Diversity: Different yet united as one! I am proud to be a tolerant Indonesian child who loves everyone!",
       text_id: "Bhinneka Tunggal Ika: Berbeda-beda tetapi tetap satu! Aku bangga menjadi anak Indonesia yang toleran dan saling menyayangi!",
-      image: "./images/paiman-enam-agama/pai17.jpg",
+      image: "./images/paiman-enam-agama/pai17_compressed.jpg",
       audio: "./audio/paiman-enam-agama/pai17.mp3",
       audio_id: "./audio/paiman-enam-agama/pai17_id.mp3",
       vocab: {
