@@ -3,7 +3,7 @@
  * APP.JS - MESIN BUKU CERITA INTERAKTIF TERLENGKAP
  * (OFFLINE DOWNLOADER, RANDOM QUESTION BANK, SHUFFLED OPTIONS,
  *  HIGH-PRECISION 60FPS KARAOKE, TIMING OFFSET CALIBRATION,
- *  TTS WITH GRACEFUL FALLBACK GUIDE, 1-CLICK PWA)
+ *  TTS WITH GRACEFUL FALLBACK GUIDE, PWA 1-CLICK UPDATE SYNC)
  * ================================================================
  */
 
@@ -23,6 +23,7 @@ let wordTimingThresholds = [];
 let rawWordTimestamps = null;
 let karaokeAnimId = null;
 let availableVoices = [];
+let swRegistration = null;
 
 const preloadedImages = {};
 const preloadedAudios = {};
@@ -74,6 +75,7 @@ const resultMsg = document.getElementById('resultMsg');
 const btnRestartStory = document.getElementById('btnRestartStory');
 const btnFinishToHome = document.getElementById('btnFinishToHome');
 
+const btnCheckUpdate = document.getElementById('btnCheckUpdate');
 const btnThemeToggleHome = document.getElementById('btnThemeToggleHome');
 const btnThemeToggleReader = document.getElementById('btnThemeToggleReader');
 const btnResetHistory = document.getElementById('btnResetHistory');
@@ -542,7 +544,126 @@ if (btnKaraokeToggle) {
 }
 
 // ================================================================
-// 12. MODAL KALIBRASI WAKTU AUDIO (IN-APP OFFSET SLIDER)
+// 12. FITUR CEK UPDATE CERITA (PWA SINKRONISASI AKTIF)
+// ================================================================
+
+function notifyUserOfUpdate(worker) {
+  const userWantsUpdate = confirm("🎉 Cerita baru atau pembaruan ditemukan!\n\nMuat ulang aplikasi sekarang untuk membaca cerita terbaru?");
+  if (userWantsUpdate) {
+    worker.postMessage({ type: 'SKIP_WAITING' });
+  }
+}
+
+async function checkForAppUpdate() {
+  if (!navigator.onLine) {
+    alert("⚠️ Kamu sedang offline. Sambungkan gawai ke internet untuk mengecek cerita baru.");
+    return;
+  }
+
+  if (btnCheckUpdate) btnCheckUpdate.classList.add('checking');
+
+  if (!('serviceWorker' in navigator)) {
+    setTimeout(() => {
+      if (btnCheckUpdate) btnCheckUpdate.classList.remove('checking');
+      window.location.reload();
+    }, 1000);
+    return;
+  }
+
+  try {
+    if (!swRegistration) {
+      swRegistration = await navigator.serviceWorker.getRegistration();
+    }
+
+    if (!swRegistration) {
+      setTimeout(() => {
+        if (btnCheckUpdate) btnCheckUpdate.classList.remove('checking');
+        window.location.reload();
+      }, 1000);
+      return;
+    }
+
+    // 1. Cek jika sudah ada worker baru yang menunggu aktivasi
+    if (swRegistration.waiting) {
+      if (btnCheckUpdate) btnCheckUpdate.classList.remove('checking');
+      notifyUserOfUpdate(swRegistration.waiting);
+      return;
+    }
+
+    let updateFound = false;
+
+    // 2. Pasang pemantau jika ada berkas yang mulai diunduh
+    const updateHandler = () => {
+      updateFound = true;
+      const worker = swRegistration.installing;
+      if (worker) {
+        worker.addEventListener('statechange', () => {
+          if (worker.state === 'installed') {
+            if (btnCheckUpdate) btnCheckUpdate.classList.remove('checking');
+            notifyUserOfUpdate(worker);
+          }
+        });
+      }
+    };
+
+    swRegistration.addEventListener('updatefound', updateHandler, { once: true });
+
+    // 3. Paksa Service Worker menghubungi server/GitHub
+    await swRegistration.update();
+
+    // 4. Toleransi waktu verifikasi respon server
+    setTimeout(() => {
+      swRegistration.removeEventListener('updatefound', updateHandler);
+      if (btnCheckUpdate) btnCheckUpdate.classList.remove('checking');
+
+      if (!updateFound && !swRegistration.waiting && !swRegistration.installing) {
+        alert("✨ Koleksi cerita sudah versi terbaru!\nBelum ada cerita baru atau pembaruan saat ini.");
+      }
+    }, 2400);
+
+  } catch (err) {
+    console.error("Gagal memeriksa update:", err);
+    if (btnCheckUpdate) btnCheckUpdate.classList.remove('checking');
+    alert("⚠️ Gagal terhubung ke server. Pastikan sambungan internet stabil.");
+  }
+}
+
+if (btnCheckUpdate) {
+  btnCheckUpdate.onclick = checkForAppUpdate;
+}
+
+// Daftarkan Service Worker dan pasang pendengar controllerchange
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => {
+        swRegistration = reg;
+        console.log('[SW] Terdaftar dengan scope:', reg.scope);
+
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              notifyUserOfUpdate(newWorker);
+            }
+          });
+        });
+      })
+      .catch(err => console.warn('[SW] Pendaftaran gagal:', err));
+
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+  });
+}
+
+// ================================================================
+// 13. MODAL KALIBRASI WAKTU AUDIO (IN-APP OFFSET SLIDER)
 // ================================================================
 
 function ensureAudioControlsInTopBar() {
@@ -632,7 +753,7 @@ function openCalibrationModal() {
   modal.style.display = 'flex';
 }
 
-// 13. KONTROL LAYAR PENUH
+// 14. KONTROL LAYAR PENUH
 function toggleFullScreen() {
   if (!document.fullscreenElement && !document.webkitFullscreenElement) {
     const docElm = document.documentElement;
@@ -647,7 +768,7 @@ function toggleFullScreen() {
 if (btnFullScreenHome) btnFullScreenHome.onclick = toggleFullScreen;
 if (btnFullScreenReader) btnFullScreenReader.onclick = toggleFullScreen;
 
-// 14. RESET RIWAYAT KUIS
+// 15. RESET RIWAYAT KUIS
 if (btnResetHistory) {
   btnResetHistory.onclick = () => {
     if (confirm("Apakah kamu yakin ingin mereset seluruh catatan bintang dan nilai kuis?")) {
@@ -658,7 +779,7 @@ if (btnResetHistory) {
   };
 }
 
-// 15. FITUR PERALIHAN BAHASA & KECEPATAN TTS
+// 16. FITUR PERALIHAN BAHASA & KECEPATAN TTS
 function updateLangToggleUI() {
   if (!btnLangToggle) return;
   const isBilingual = currentStory && currentStory.pages && currentStory.pages.some(p => p.text_id && p.text);
@@ -697,7 +818,7 @@ if (btnSpeedToggle) {
   };
 }
 
-// 16. BUKA CERITA & KEMBALI
+// 17. BUKA CERITA & KEMBALI
 function openStory(story) {
   currentStory = story; 
   currentPage = 0; 
@@ -765,7 +886,7 @@ if (btnBackHome) btnBackHome.onclick = returnToHome;
 if (btnFinishToHome) btnFinishToHome.onclick = returnToHome;
 
 // ================================================================
-// 17. RENDER KONTEN BUKU (DILENGKAPI TIMESTAMPS & AKUSTIK SINKRON)
+// 18. RENDER KONTEN BUKU (DILENGKAPI TIMESTAMPS & AKUSTIK SINKRON)
 // ================================================================
 function renderStoryPageContent(index, autoPlayAudio = false) {
   if (!currentStory || !currentStory.pages || !currentStory.pages[index]) return;
@@ -887,7 +1008,7 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
   btnNext.textContent = isLastPage ? (hasQuiz ? 'Ikuti Kuis 🎯' : 'Selesai 🏁') : 'Balik Halaman';
 }
 
-// 18. ANIMASI BALIK HALAMAN SINKRON
+// 19. ANIMASI BALIK HALAMAN SINKRON
 function turnPage(direction) {
   if (isFlipping) return;
   isFlipping = true;
@@ -909,7 +1030,7 @@ function turnPage(direction) {
 }
 
 // ================================================================
-// 19. SUARA KATA (TTS DENGAN DETEKSI & GRACEFUL FALLBACK)
+// 20. SUARA KATA (TTS DENGAN DETEKSI & GRACEFUL FALLBACK)
 // ================================================================
 
 function showVoiceInstallGuideModal() {
@@ -930,12 +1051,12 @@ function showVoiceInstallGuideModal() {
           Gawai ini belum memiliki data suara <strong>Bahasa Indonesia</strong> pada sistemnya, sehingga suara kata ditiadakan sementara agar tidak salah lafal (berlogat asing).
         </p>
         <div style="background: var(--option-bg); border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 14px; font-size: 0.82rem; line-height: 1.6; margin: 6px 0;">
-          <strong>Cara mengaktifkannya di gawai (Android / Tablet):</strong>
+          <strong>Cara mudah mengaktifkannya (Android / Tablet):</strong>
           <ol style="padding-left: 18px; margin-top: 4px; color: var(--text);">
             <li>Buka menu <strong>Pengaturan (Settings)</strong> gawai.</li>
-            <li>Pilih <strong>Aksesibilitas</strong> atau <strong>Manajemen Umum</strong>.</li>
-            <li>Pilih <strong>Teks-ke-suara (Text-to-speech)</strong>.</li>
-            <li>Pilih <strong>Layanan Suara Google</strong> &rarr; Unduh paket <strong>Bahasa Indonesia</strong>.</li>
+            <li>Ketik <strong>"teks ke suara"</strong> atau <strong>"TTS"</strong> pada kolom pencarian setelan.</li>
+            <li>Pilih <strong>Layanan Suara Google</strong> sebagai mesin pilihan.</li>
+            <li>Ketuk ikon gerigi (⚙️) &rarr; <strong>Pasang data suara</strong> &rarr; unduh <strong>Bahasa Indonesia</strong>.</li>
           </ol>
         </div>
         <p style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 4px;">
@@ -971,7 +1092,7 @@ function speakWord(word, element) {
   const targetLang = getActiveLanguage();
   const matchedVoice = getBestVoiceForLang(targetLang);
 
-  // GRACEFUL FALLBACK: Jika bahasa Indonesia tetapi perangkat tidak punya suara Indonesia
+  // GRACEFUL FALLBACK: Batalkan pembacaan logat Inggris jika suara ID tidak ditemukan
   if (targetLang.startsWith('id') && !matchedVoice) {
     showVoiceInstallGuideModal();
     return;
@@ -998,7 +1119,7 @@ function speakWord(word, element) {
 }
 
 // ================================================================
-// 20. SINKRONISASI KARAOKE 60 FPS (DILENGKAPI OFFSET & TIMESTAMPS)
+// 21. SINKRONISASI KARAOKE 60 FPS (DILENGKAPI OFFSET & TIMESTAMPS)
 // ================================================================
 function updateKaraokeHighlight() {
   if (!isKaraokeEnabled) {
@@ -1099,7 +1220,7 @@ function clearKaraokeHighlight() {
   currentWordElements.forEach(span => span.classList.remove('karaoke-active'));
 }
 
-// 21. GESTURE SWIPE TOUCH
+// 22. GESTURE SWIPE TOUCH
 let touchStartX = 0; let touchStartY = 0;
 bookStage.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }, { passive: true });
 bookStage.addEventListener('touchend', (e) => {
@@ -1121,7 +1242,7 @@ btnNext.onclick = handleNextAction;
 btnPrev.onclick = () => { if (currentPage > 0) turnPage('prev'); };
 
 // ================================================================
-// 22. MESIN KUIS PEMAHAMAN (BANK SOAL & PILIHAN JAWABAN TERACAK)
+// 23. MESIN KUIS PEMAHAMAN (BANK SOAL & PILIHAN JAWABAN TERACAK)
 // ================================================================
 
 function shuffleArray(array) {
@@ -1264,7 +1385,7 @@ if (btnRestartStory) {
   }; 
 }
 
-// 23. MODE MALAM
+// 24. MODE MALAM
 function applyTheme(isDark) {
   document.body.classList.toggle('dark-mode', isDark);
   if (btnThemeToggleHome) btnThemeToggleHome.textContent = isDark ? '☀️' : '🌙';
@@ -1277,7 +1398,7 @@ if (btnThemeToggleHome) btnThemeToggleHome.onclick = toggleTheme;
 if (btnThemeToggleReader) btnThemeToggleReader.onclick = toggleTheme;
 if (localStorage.getItem('storybook_theme') === 'dark') { applyTheme(true); }
 
-// 24. INDIKATOR JARINGAN
+// 25. INDIKATOR JARINGAN
 function updateNetworkStatus() {
   if (!networkStatus) return;
   const isOnline = navigator.onLine;
@@ -1288,7 +1409,7 @@ function updateNetworkStatus() {
 window.addEventListener('online', updateNetworkStatus);
 window.addEventListener('offline', updateNetworkStatus);
 
-// 25. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT PURE)
+// 26. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT PURE)
 let deferredPrompt = null;
 
 if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
@@ -1324,7 +1445,7 @@ window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
 });
 
-// 26. INISIALISASI
+// 27. INISIALISASI
 window.addEventListener('DOMContentLoaded', () => {
   renderHomeShelf();
   updateAutoPlayUI();
