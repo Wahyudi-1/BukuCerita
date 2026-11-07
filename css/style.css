@@ -802,3 +802,15 @@ body.dark-mode .btn-offline-status.downloading {
   background: var(--option-bg);
   color: var(--text-sub);
 }
+
+/* Animasi Putar Saat Tombol Cek Update Ditekan */
+.btn-tool.checking {
+  animation: spinUpdateIcon 0.8s linear infinite;
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+@keyframes spinUpdateIcon {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
