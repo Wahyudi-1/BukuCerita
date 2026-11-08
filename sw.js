@@ -5,7 +5,7 @@
  * ================================================================
  */
 
-const CACHE_NAME = 'buku-cerita-v3.5.1';
+const CACHE_NAME = 'buku-cerita-v3.5.2';
 const OFFLINE_MEDIA_CACHE = 'buku-cerita-offline-media';
 
 // Aset Inti Kerangka Aplikasi (App Shell & Seluruh Berkas Naskah Cerita)
