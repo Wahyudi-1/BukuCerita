@@ -3,7 +3,8 @@
  * APP.JS - MESIN BUKU CERITA INTERAKTIF TERLENGKAP
  * (OFFLINE DOWNLOADER, RANDOM QUESTION BANK, SHUFFLED OPTIONS,
  *  HIGH-PRECISION 60FPS KARAOKE, TIMING OFFSET CALIBRATION,
- *  TTS WITH GRACEFUL FALLBACK GUIDE, PWA 1-CLICK UPDATE SYNC)
+ *  TTS WITH GRACEFUL FALLBACK GUIDE, PWA 1-CLICK UPDATE SYNC,
+ *  SMOOTH FADE IN/OUT BGM & VOLUME SLIDER)
  * ================================================================
  */
 
@@ -37,9 +38,14 @@ const QUIZ_QUESTION_COUNT = 4;
 // Status preferensi pengguna (tersimpan di localStorage)
 let isAutoPlay = localStorage.getItem('storybook_autoplay') !== 'false';
 let isKaraokeEnabled = localStorage.getItem('storybook_karaoke') !== 'false';
+let isBgmEnabled = localStorage.getItem('storybook_bgm') !== 'false';
+let bgmTargetVolume = parseFloat(localStorage.getItem('storybook_bgm_volume') || '0.35');
 let audioOffsetSec = parseFloat(localStorage.getItem('storybook_audio_offset') || '0.0');
 let currentStoryLang = 'id';
 let ttsSpeed = 0.85;
+
+// Penampung Timer Transisi Fade Audio
+let bgmFadeInterval = null;
 
 // 2. REFERENSI ELEMEN DOM
 const homeView = document.getElementById('homeView');
@@ -75,6 +81,11 @@ const resultMsg = document.getElementById('resultMsg');
 const btnRestartStory = document.getElementById('btnRestartStory');
 const btnFinishToHome = document.getElementById('btnFinishToHome');
 
+const btnBgmToggle = document.getElementById('btnBgmToggle');
+const bgmWidget = document.getElementById('bgmWidget');
+const bgmVolumeSlider = document.getElementById('bgmVolumeSlider');
+const bgmAudio = document.getElementById('bgmAudio');
+
 const btnCheckUpdate = document.getElementById('btnCheckUpdate');
 const btnThemeToggleHome = document.getElementById('btnThemeToggleHome');
 const btnThemeToggleReader = document.getElementById('btnThemeToggleReader');
@@ -108,7 +119,6 @@ if ('speechSynthesis' in window) {
   window.speechSynthesis.onvoiceschanged = populateVoices;
 }
 
-// Mekanisme Polling Aktif untuk Android & Safari
 let voicePollCount = 0;
 const voicePollInterval = setInterval(() => {
   voicePollCount++;
@@ -153,7 +163,6 @@ function getBestVoiceForLang(targetLang) {
     });
     if (matched) return matched;
 
-    // Sangat penting: kembalikan null agar tidak meminjam suara bahasa Inggris
     return null;
   } else {
     let matched = availableVoices.find(v => v.lang.replace('_', '-').toLowerCase() === 'en-us');
@@ -544,7 +553,139 @@ if (btnKaraokeToggle) {
 }
 
 // ================================================================
-// 12. FITUR CEK UPDATE CERITA (PWA SINKRONISASI AKTIF)
+// 12. MUSIK LATAR BELAKANG (BGM) DENGAN FADE IN, FADE OUT & VOLUME SLIDER
+// ================================================================
+
+function fadeBgm(toVolume, durationMs = 800, callback) {
+  if (!bgmAudio) return;
+  if (bgmFadeInterval) clearInterval(bgmFadeInterval);
+
+  const startVol = bgmAudio.volume;
+  const diff = toVolume - startVol;
+  const stepTime = 40;
+  const totalSteps = Math.max(1, Math.floor(durationMs / stepTime));
+  let currentStep = 0;
+
+  bgmFadeInterval = setInterval(() => {
+    currentStep++;
+    const progress = currentStep / totalSteps;
+    const newVol = Math.max(0, Math.min(1, startVol + diff * progress));
+    bgmAudio.volume = newVol;
+
+    if (currentStep >= totalSteps) {
+      clearInterval(bgmFadeInterval);
+      bgmFadeInterval = null;
+      bgmAudio.volume = toVolume;
+      if (callback) callback();
+    }
+  }, stepTime);
+}
+
+function playBgm(useFade = true) {
+  if (!bgmAudio || !isBgmEnabled || bgmTargetVolume <= 0) return;
+  if (homeView && homeView.style.display !== 'none') {
+    if (useFade) {
+      bgmAudio.volume = 0;
+      const playPromise = bgmAudio.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          fadeBgm(bgmTargetVolume, 900);
+        }).catch(() => {});
+      }
+    } else {
+      bgmAudio.volume = bgmTargetVolume;
+      bgmAudio.play().catch(() => {});
+    }
+  }
+}
+
+function pauseBgm(useFade = true, callback) {
+  if (!bgmAudio) return;
+  if (useFade && !bgmAudio.paused) {
+    fadeBgm(0, 500, () => {
+      bgmAudio.pause();
+      bgmAudio.volume = bgmTargetVolume;
+      if (callback) callback();
+    });
+  } else {
+    if (bgmFadeInterval) clearInterval(bgmFadeInterval);
+    bgmAudio.pause();
+    bgmAudio.volume = bgmTargetVolume;
+    if (callback) callback();
+  }
+}
+
+function updateBgmUI() {
+  if (!btnBgmToggle) return;
+  if (isBgmEnabled && bgmTargetVolume > 0) {
+    btnBgmToggle.textContent = '🎵';
+    btnBgmToggle.title = 'Musik Latar: AKTIF (Klik untuk mematikan)';
+    if (bgmWidget) bgmWidget.classList.remove('bgm-off');
+  } else {
+    btnBgmToggle.textContent = '🔇';
+    btnBgmToggle.title = 'Musik Latar: NONAKTIF (Klik untuk menyalakan)';
+    if (bgmWidget) bgmWidget.classList.add('bgm-off');
+  }
+
+  if (bgmVolumeSlider) {
+    bgmVolumeSlider.value = bgmTargetVolume;
+  }
+}
+
+function toggleBgm() {
+  isBgmEnabled = !isBgmEnabled;
+  localStorage.setItem('storybook_bgm', isBgmEnabled);
+  updateBgmUI();
+
+  if (isBgmEnabled) {
+    if (bgmTargetVolume === 0) {
+      bgmTargetVolume = 0.35;
+      localStorage.setItem('storybook_bgm_volume', '0.35');
+      if (bgmVolumeSlider) bgmVolumeSlider.value = 0.35;
+    }
+    playBgm(true);
+  } else {
+    pauseBgm(true);
+  }
+}
+
+if (btnBgmToggle) {
+  btnBgmToggle.onclick = toggleBgm;
+}
+
+if (bgmVolumeSlider) {
+  bgmVolumeSlider.value = bgmTargetVolume;
+  bgmVolumeSlider.oninput = (e) => {
+    bgmTargetVolume = parseFloat(e.target.value);
+    localStorage.setItem('storybook_bgm_volume', bgmTargetVolume.toString());
+
+    if (bgmTargetVolume === 0) {
+      isBgmEnabled = false;
+      localStorage.setItem('storybook_bgm', 'false');
+      pauseBgm(false);
+    } else {
+      isBgmEnabled = true;
+      localStorage.setItem('storybook_bgm', 'true');
+      if (bgmAudio.paused) {
+        playBgm(false);
+      } else {
+        if (bgmFadeInterval) clearInterval(bgmFadeInterval);
+        bgmAudio.volume = bgmTargetVolume;
+      }
+    }
+    updateBgmUI();
+  };
+}
+
+// Buka kunci autoplay peramban pada interaksi pertama pengguna
+window.addEventListener('pointerdown', () => {
+  if (isBgmEnabled && bgmAudio && bgmAudio.paused) {
+    playBgm(true);
+  }
+}, { once: true });
+
+// ================================================================
+// 13. FITUR CEK UPDATE CERITA (PWA SINKRONISASI AKTIF)
 // ================================================================
 
 function notifyUserOfUpdate(worker) {
@@ -583,7 +724,6 @@ async function checkForAppUpdate() {
       return;
     }
 
-    // 1. Cek jika sudah ada worker baru yang menunggu aktivasi
     if (swRegistration.waiting) {
       if (btnCheckUpdate) btnCheckUpdate.classList.remove('checking');
       notifyUserOfUpdate(swRegistration.waiting);
@@ -592,7 +732,6 @@ async function checkForAppUpdate() {
 
     let updateFound = false;
 
-    // 2. Pasang pemantau jika ada berkas yang mulai diunduh
     const updateHandler = () => {
       updateFound = true;
       const worker = swRegistration.installing;
@@ -607,11 +746,8 @@ async function checkForAppUpdate() {
     };
 
     swRegistration.addEventListener('updatefound', updateHandler, { once: true });
-
-    // 3. Paksa Service Worker menghubungi server/GitHub
     await swRegistration.update();
 
-    // 4. Toleransi waktu verifikasi respon server
     setTimeout(() => {
       swRegistration.removeEventListener('updatefound', updateHandler);
       if (btnCheckUpdate) btnCheckUpdate.classList.remove('checking');
@@ -632,7 +768,6 @@ if (btnCheckUpdate) {
   btnCheckUpdate.onclick = checkForAppUpdate;
 }
 
-// Daftarkan Service Worker dan pasang pendengar controllerchange
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
@@ -663,7 +798,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // ================================================================
-// 13. MODAL KALIBRASI WAKTU AUDIO (IN-APP OFFSET SLIDER)
+// 14. MODAL KALIBRASI WAKTU AUDIO (IN-APP OFFSET SLIDER)
 // ================================================================
 
 function ensureAudioControlsInTopBar() {
@@ -736,7 +871,7 @@ function openCalibrationModal() {
         statusText.style.color = '#b91c1c';
       } else {
         statusText.textContent = '🎯 Sinkron Standar';
-        statusText.style.color = 'var(--text-sub)';
+        statusText.color = 'var(--text-sub)';
       }
     };
 
@@ -753,7 +888,7 @@ function openCalibrationModal() {
   modal.style.display = 'flex';
 }
 
-// 14. KONTROL LAYAR PENUH
+// 15. KONTROL LAYAR PENUH
 function toggleFullScreen() {
   if (!document.fullscreenElement && !document.webkitFullscreenElement) {
     const docElm = document.documentElement;
@@ -768,7 +903,7 @@ function toggleFullScreen() {
 if (btnFullScreenHome) btnFullScreenHome.onclick = toggleFullScreen;
 if (btnFullScreenReader) btnFullScreenReader.onclick = toggleFullScreen;
 
-// 15. RESET RIWAYAT KUIS
+// 16. RESET RIWAYAT KUIS
 if (btnResetHistory) {
   btnResetHistory.onclick = () => {
     if (confirm("Apakah kamu yakin ingin mereset seluruh catatan bintang dan nilai kuis?")) {
@@ -779,7 +914,7 @@ if (btnResetHistory) {
   };
 }
 
-// 16. FITUR PERALIHAN BAHASA & KECEPATAN TTS
+// 17. FITUR PERALIHAN BAHASA & KECEPATAN TTS
 function updateLangToggleUI() {
   if (!btnLangToggle) return;
   const isBilingual = currentStory && currentStory.pages && currentStory.pages.some(p => p.text_id && p.text);
@@ -818,11 +953,14 @@ if (btnSpeedToggle) {
   };
 }
 
-// 17. BUKA CERITA & KEMBALI
+// 18. BUKA CERITA & KEMBALI (DENGAN TRANSISI HALUS BGM)
 function openStory(story) {
   currentStory = story; 
   currentPage = 0; 
   inQuizMode = false;
+
+  // Hentikan musik latar dengan fade out halus agar tidak bertabrakan dengan cerita
+  pauseBgm(true);
   
   const theme = story.highlightTheme || {
     bg: "linear-gradient(135deg, #fef08a, #fde047)",
@@ -880,13 +1018,18 @@ function returnToHome() {
   homeView.style.display = 'flex'; 
   currentStory = null; 
   renderHomeShelf();
+
+  // Nyalakan kembali musik latar dengan transisi fade in lembut
+  if (isBgmEnabled) {
+    playBgm(true);
+  }
 }
 
 if (btnBackHome) btnBackHome.onclick = returnToHome;
 if (btnFinishToHome) btnFinishToHome.onclick = returnToHome;
 
 // ================================================================
-// 18. RENDER KONTEN BUKU (DILENGKAPI TIMESTAMPS & AKUSTIK SINKRON)
+// 19. RENDER KONTEN BUKU (DILENGKAPI TIMESTAMPS & AKUSTIK SINKRON)
 // ================================================================
 function renderStoryPageContent(index, autoPlayAudio = false) {
   if (!currentStory || !currentStory.pages || !currentStory.pages[index]) return;
@@ -927,11 +1070,9 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
   textFlow.innerHTML = '';
   const words = activeText.split(/\s+/).filter(w => w.trim().length > 0);
 
-  // 1. Cek ketersediaan Timestamps Eksplisit dari data cerita
   if (pageData.timestamps && Array.isArray(pageData.timestamps) && pageData.timestamps.length === words.length) {
     rawWordTimestamps = pageData.timestamps;
   } else {
-    // 2. Estimasi Pembobotan Akustik Fonetik
     const wordWeights = words.map(w => {
       const clean = w.replace(/[^a-zA-Z0-9]/g, '');
       const vowelMatches = clean.match(/[aiueoAIUEO]/g);
@@ -963,7 +1104,6 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
     });
   }
 
-  // Render elemen kata interaktif
   words.forEach(word => {
     const cleanKey = word.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
     
@@ -978,7 +1118,6 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
 
     const hasTranslation = currentStoryLang === 'en' && pageData.vocab && pageData.vocab[cleanKey];
 
-    // Klik kata langsung melafalkan via TTS dengan Graceful Fallback
     span.onclick = () => {
       speakWord(word, span);
 
@@ -1008,7 +1147,7 @@ function renderStoryPageContent(index, autoPlayAudio = false) {
   btnNext.textContent = isLastPage ? (hasQuiz ? 'Ikuti Kuis 🎯' : 'Selesai 🏁') : 'Balik Halaman';
 }
 
-// 19. ANIMASI BALIK HALAMAN SINKRON
+// 20. ANIMASI BALIK HALAMAN SINKRON
 function turnPage(direction) {
   if (isFlipping) return;
   isFlipping = true;
@@ -1030,7 +1169,7 @@ function turnPage(direction) {
 }
 
 // ================================================================
-// 20. SUARA KATA (TTS DENGAN DETEKSI & GRACEFUL FALLBACK)
+// 21. SUARA KATA (TTS DENGAN DETEKSI & GRACEFUL FALLBACK)
 // ================================================================
 
 function showVoiceInstallGuideModal() {
@@ -1092,7 +1231,6 @@ function speakWord(word, element) {
   const targetLang = getActiveLanguage();
   const matchedVoice = getBestVoiceForLang(targetLang);
 
-  // GRACEFUL FALLBACK: Batalkan pembacaan logat Inggris jika suara ID tidak ditemukan
   if (targetLang.startsWith('id') && !matchedVoice) {
     showVoiceInstallGuideModal();
     return;
@@ -1119,7 +1257,7 @@ function speakWord(word, element) {
 }
 
 // ================================================================
-// 21. SINKRONISASI KARAOKE 60 FPS (DILENGKAPI OFFSET & TIMESTAMPS)
+// 22. SINKRONISASI KARAOKE 60 FPS (DILENGKAPI OFFSET & TIMESTAMPS)
 // ================================================================
 function updateKaraokeHighlight() {
   if (!isKaraokeEnabled) {
@@ -1220,7 +1358,7 @@ function clearKaraokeHighlight() {
   currentWordElements.forEach(span => span.classList.remove('karaoke-active'));
 }
 
-// 22. GESTURE SWIPE TOUCH
+// 23. GESTURE SWIPE TOUCH
 let touchStartX = 0; let touchStartY = 0;
 bookStage.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }, { passive: true });
 bookStage.addEventListener('touchend', (e) => {
@@ -1242,7 +1380,7 @@ btnNext.onclick = handleNextAction;
 btnPrev.onclick = () => { if (currentPage > 0) turnPage('prev'); };
 
 // ================================================================
-// 23. MESIN KUIS PEMAHAMAN (BANK SOAL & PILIHAN JAWABAN TERACAK)
+// 24. MESIN KUIS PEMAHAMAN (BANK SOAL & PILIHAN JAWABAN TERACAK)
 // ================================================================
 
 function shuffleArray(array) {
@@ -1385,7 +1523,7 @@ if (btnRestartStory) {
   }; 
 }
 
-// 24. MODE MALAM
+// 25. MODE MALAM
 function applyTheme(isDark) {
   document.body.classList.toggle('dark-mode', isDark);
   if (btnThemeToggleHome) btnThemeToggleHome.textContent = isDark ? '☀️' : '🌙';
@@ -1398,7 +1536,7 @@ if (btnThemeToggleHome) btnThemeToggleHome.onclick = toggleTheme;
 if (btnThemeToggleReader) btnThemeToggleReader.onclick = toggleTheme;
 if (localStorage.getItem('storybook_theme') === 'dark') { applyTheme(true); }
 
-// 25. INDIKATOR JARINGAN
+// 26. INDIKATOR JARINGAN
 function updateNetworkStatus() {
   if (!networkStatus) return;
   const isOnline = navigator.onLine;
@@ -1409,7 +1547,7 @@ function updateNetworkStatus() {
 window.addEventListener('online', updateNetworkStatus);
 window.addEventListener('offline', updateNetworkStatus);
 
-// 26. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT PURE)
+// 27. PEMICU INSTALASI LANGSUNG (1-CLICK NATIVE PROMPT PURE)
 let deferredPrompt = null;
 
 if (pwaInstallBanner) pwaInstallBanner.style.display = 'none';
@@ -1445,12 +1583,14 @@ window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
 });
 
-// 27. INISIALISASI
+// 28. INISIALISASI
 window.addEventListener('DOMContentLoaded', () => {
   renderHomeShelf();
   updateAutoPlayUI();
   updateNetworkStatus();
   updateKaraokeUI();
+  updateBgmUI();
   ensureAudioControlsInTopBar();
   populateVoices();
+  playBgm(true);
 });
