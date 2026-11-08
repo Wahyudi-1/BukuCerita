@@ -31,6 +31,8 @@ const CORE_ASSETS = [
   './js/stories/kenzo.js',
   './images/icon-192.png',
   './images/icon-512.png'
+  './audio/bgm-home.mp3', // <-- Tambahkan di sini
+  // ... berkas cerita lainnya
 ];
 
 // 1. TAHAP INSTALASI: Menyimpan berkas dasar ke cache
