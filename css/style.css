@@ -815,31 +815,37 @@ body.dark-mode .btn-offline-status.downloading {
   to { transform: rotate(360deg); }
 }
 
-/* ================= WIDGET MUSIK LATAR & SLIDER VOLUME ================= */
+/* ================= WIDGET MUSIK LATAR & SLIDER RESPONSIF ================= */
 .bgm-widget {
-  display: flex;
+  position: relative;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
   background: var(--paper);
   border: 2px solid var(--border);
   box-shadow: 0 3px 0 var(--border);
-  border-radius: 16px;
-  padding: 2px 8px 2px 2px;
-  height: 42px;
+  border-radius: 14px;
+  height: 40px;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
-.bgm-widget .btn-tool {
+.bgm-widget #btnBgmToggle {
   border: none;
   box-shadow: none;
   background: transparent;
   width: 36px;
   height: 36px;
+  font-size: 1.15rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .bgm-slider-box {
   display: flex;
   align-items: center;
-  width: 65px;
 }
 
 .bgm-slider {
@@ -862,10 +868,11 @@ body.dark-mode .btn-offline-status.downloading {
   border-radius: 50%;
   background: var(--primary);
   border: 2px solid #ffffff;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
   cursor: pointer;
 }
 
+/* Status BGM Nonaktif */
 .bgm-widget.bgm-off {
   background: #fee2e2;
   border-color: #fca5a5;
@@ -878,7 +885,93 @@ body.dark-mode .bgm-widget.bgm-off {
   box-shadow: 0 3px 0 #991b1b;
 }
 
-.bgm-widget.bgm-off .bgm-slider {
-  opacity: 0.4;
-  pointer-events: none;
+/* ================= ADAPTASI 1: LAPTOP / DESKTOP (>= 900px) ================= */
+@media (min-width: 900px) {
+  .bgm-widget {
+    padding: 2px 10px 2px 2px;
+  }
+  .bgm-slider-box {
+    width: 75px;
+    margin-left: 2px;
+  }
 }
+
+/* ================= ADAPTASI 2: TABLET (601px - 899px) ================= */
+@media (min-width: 601px) and (max-width: 899px) {
+  .bgm-widget {
+    padding: 2px 8px 2px 2px;
+  }
+  .bgm-slider-box {
+    width: 55px;
+    margin-left: 2px;
+  }
+}
+
+/* ================= ADAPTASI 3: SMARTPHONE (<= 600px) ================= */
+@media (max-width: 600px) {
+  .bgm-widget {
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  /* Slider berubah menjadi popover melayang di bawah tombol */
+  .bgm-slider-box {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 140px;
+    padding: 12px 14px;
+    background: var(--paper);
+    border: 2px solid var(--border);
+    box-shadow: 0 8px 24px var(--card-shadow);
+    border-radius: 16px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  }
+
+  /* Segitiga penunjuk balon melayang */
+  .bgm-slider-box::before {
+    content: '';
+    position: absolute;
+    top: -7px;
+    right: 14px;
+    width: 10px;
+    height: 10px;
+    background: var(--paper);
+    border-left: 2px solid var(--border);
+    border-top: 2px solid var(--border);
+    transform: rotate(45deg);
+  }
+
+  /* Tampil saat disentuh / fokus */
+  .bgm-widget:focus-within .bgm-slider-box,
+  .bgm-widget.show-slider .bgm-slider-box {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+}
+
+/* ================= ADAPTASI 4: PONSEL LAYAR KECIL (<= 480px) ================= */
+@media (max-width: 480px) {
+  .home-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .header-title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .header-tools {
+    justify-content: flex-end;
+    width: 100%;
+  }
+}}
