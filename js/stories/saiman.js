@@ -13,7 +13,7 @@ window.STORIES_DATABASE.push({
   title: "Petualangan Sains Saiman: Rahasia Kupu-Kupu",
   category: "Fase A / SD Kelas 1",
   defaultLang: "id",
-  cover: "./images/sains-saiman-kupu-kupu/saicover_compressed.jpg",
+  cover: "./images/sains-saiman-kupu-kupu/sai15_compressed.jpg",
   description: "Ikuti petualangan Saiman, anak laki-laki pecinta sains, yang mengamati keajaiban metamorfosis kupu-kupu dari sebutir telur kecil hingga bisa terbang bebas di kebunnya.",
 
   highlightTheme: {
