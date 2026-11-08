@@ -649,9 +649,23 @@ function toggleBgm() {
   }
 }
 
+// Ganti bagian event listener BGM di app.js dengan kode berikut:
 if (btnBgmToggle) {
-  btnBgmToggle.onclick = toggleBgm;
+  btnBgmToggle.onclick = (e) => {
+    // Pada ponsel, buka/tutup balon slider melayang saat tombol diketuk
+    if (window.innerWidth <= 600 && bgmWidget) {
+      bgmWidget.classList.toggle('show-slider');
+    }
+    toggleBgm();
+  };
 }
+
+// Tutup balon slider otomatis jika pengguna menyentuh area luar di HP
+document.addEventListener('pointerdown', (e) => {
+  if (bgmWidget && !bgmWidget.contains(e.target)) {
+    bgmWidget.classList.remove('show-slider');
+  }
+});
 
 if (bgmVolumeSlider) {
   bgmVolumeSlider.value = bgmTargetVolume;
