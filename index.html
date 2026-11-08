@@ -52,6 +52,13 @@
           <p>Pilih buku cerita bergambar yang ingin kamu baca:</p>
         </div>
         <div class="header-tools">
+          <!-- Widget Kontrol Musik Latar (Tombol & Slider Volume) -->
+          <div class="bgm-widget" id="bgmWidget">
+            <button class="btn-tool" id="btnBgmToggle" title="Musik Latar: AKTIF (Klik untuk mematikan)">🎵</button>
+            <div class="bgm-slider-box">
+              <input type="range" id="bgmVolumeSlider" class="bgm-slider" min="0" max="1" step="0.05" value="0.35" title="Volume Musik Latar">
+            </div>
+          </div>
           <!-- Tombol Cek Pembaruan Cerita -->
           <button class="btn-tool" id="btnCheckUpdate" title="Cek Update Cerita">🔄</button>
           <button class="btn-tool" id="btnResetHistory" title="Reset Riwayat Bintang & Nilai">🗑️</button>
@@ -135,7 +142,8 @@
     </div>
 
   </div>
-
+  <!-- Pemutar Musik Latar Beranda -->
+  <audio id="bgmAudio" loop preload="auto" src="audio/bgm-home.mp3"></audio>
   <audio id="audioElement"></audio>
 
   <!-- ================= DAFTAR BUKU CERITA MODULAR ================= -->
@@ -154,7 +162,7 @@
   <script src="js/stories/thoriq.js"></script>
   <script src="js/stories/kenzo.js"></script>
   <script src="js/stories/paiman.js"></script>
-
+  <script src="js/stories/saiman.js"></script>
   <!-- ================= MESIN APLIKASI UTAMA ================= -->
   <script src="js/app.js"></script>
 
